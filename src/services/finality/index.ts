@@ -12,3 +12,4 @@ export * from "./AncestryVerifier";
 export * from "./ReconciliationService";
 export * from "./FinalizationManager";
 export * from "./ReorgEvent";
+export * from "./BridgeProofValidator";
