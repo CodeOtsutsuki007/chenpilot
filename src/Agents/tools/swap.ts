@@ -109,7 +109,7 @@ export class SwapTool extends BaseTool<SwapPayload> {
    */
   private getStellarAccount(userId: string): StellarSdk.Keypair {
     const accountData =
-      accountSecretStore.getAccountByUserId<StellarAccountData>(userId);
+      accountSecretStore.getAccountByUserId<StellarAccountData>(userId, "swap");
 
     if (!accountData?.secretKey) {
       throw new Error(`Stellar account not found for user: ${userId}`);

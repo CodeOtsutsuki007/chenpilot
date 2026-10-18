@@ -26,6 +26,7 @@ import experimentRoutes from "../Agents/admin/experiment.routes";
 import simulationRoutes from "../Agents/admin/simulation.routes";
 import workflowRoutes from "../Agents/admin/workflow.routes";
 import progressMonitorRoutes from "../Agents/planner/progressMonitor.routes";
+import transactionPreviewRoutes from "./transactionPreview.routes";
 import { stellarLiquidityTool } from "../Agents/tools/stellarLiquidityTool";
 import { authenticateToken } from "../Auth/auth.middleware";
 import { validateBody, validateQuery } from "./middleware/validation";
@@ -37,6 +38,10 @@ import { auditLogService } from "../AuditLog/auditLog.service";
 import { AuditAction, AuditSeverity } from "../AuditLog/auditLog.entity";
 
 import { BotSessionService } from "../Bot/botSession.service";
+import { createAbusePreventionMiddleware } from "../Security/abusePrevention";
+import abuseRoutes from "../Security/abusePrevention/abuse.routes";
+import authorizationRoutes from "../Security/authorization/authorization.routes";
+import { SecretAccessError, secretManager } from "../Security/secrets";
 import { BotPlatform } from "../Bot/botSession.entity";
 import {
   BotMetricsDto,
@@ -100,6 +105,15 @@ router.use("/admin/workflows", workflowRoutes);
 
 // Mount progress monitor routes (requires admin role)
 router.use("/planner/progress", progressMonitorRoutes);
+
+// Abuse-protection telemetry and incident response (admin only)
+router.use("/security/abuse", abuseRoutes);
+
+// Unified authorization policy (used by the bot to get the same decisions as the API)
+router.use("/authorization", authorizationRoutes);
+
+// Decoded, anti-phishing transaction previews (shared by bot and UI)
+router.use("/transactions/preview", transactionPreviewRoutes);
 router.get(
   "/admin/operator-report",
   authenticateToken,
@@ -401,10 +415,34 @@ router.post(
   }
 );
 
+type WebhookBody = Record<string, unknown> | undefined;
+
+/** Platform user that sent a Telegram update, used as the abuse-limit subject. */
+function telegramSenderId(body: WebhookBody): string | undefined {
+  const update = body as
+    | { message?: { from?: { id?: number } }; callback_query?: { from?: { id?: number } } }
+    | undefined;
+  const id = update?.message?.from?.id ?? update?.callback_query?.from?.id;
+  return id === undefined ? undefined : `telegram:${id}`;
+}
+
+/** Platform user that sent a Discord interaction, used as the abuse-limit subject. */
+function discordSenderId(body: WebhookBody): string | undefined {
+  const interaction = body as
+    | { member?: { user?: { id?: string } }; user?: { id?: string } }
+    | undefined;
+  const id = interaction?.member?.user?.id ?? interaction?.user?.id;
+  return id === undefined ? undefined : `discord:${id}`;
+}
+
 // Public webhook endpoint for Telegram
 router.post(
   "/webhook/telegram",
   webhookAuth("telegram"),
+  createAbusePreventionMiddleware("webhook.telegram", undefined, {
+    surface: "bot",
+    subject: (req) => ({ userId: telegramSenderId(req.body) }),
+  }),
   async (req: Request, res: Response) => {
     try {
       const result = await platformWebhookService.processTelegramWebhook(req);
@@ -443,6 +481,10 @@ router.post(
 router.post(
   "/webhook/discord",
   webhookAuth("discord"),
+  createAbusePreventionMiddleware("webhook.discord", undefined, {
+    surface: "bot",
+    subject: (req) => ({ userId: discordSenderId(req.body) }),
+  }),
   async (req: Request, res: Response) => {
     try {
       const result = await platformWebhookService.processDiscordWebhook(req);
@@ -952,12 +994,24 @@ router.post(
           .json({ success: false, message: "Account already sponsored" });
       }
 
-      const sponsorSecret = process.env.SPONSOR_SECRET_KEY;
-      if (!sponsorSecret) {
-        return res.status(503).json({
-          success: false,
-          message: "Sponsorship service not configured",
-        });
+      // Scoped, audited access: the plaintext seed only lives inside the
+      // callback and is zeroized afterwards.
+      let sponsorKeypair: StellarSdk.Keypair;
+      try {
+        sponsorKeypair = await secretManager.withSecret(
+          "stellar.sponsor-key",
+          { workflow: "sponsorship", actor: String(userId) },
+          (secret) => secret.consumeString((seed) => StellarSdk.Keypair.fromSecret(seed))
+        );
+      } catch (error) {
+        if (error instanceof SecretAccessError) {
+          logger.error("Sponsor key unavailable", { code: error.code });
+          return res.status(503).json({
+            success: false,
+            message: "Sponsorship service not configured",
+          });
+        }
+        throw error;
       }
 
       const networkPassphrase =
@@ -965,7 +1019,6 @@ router.post(
           ? StellarSdk.Networks.PUBLIC
           : StellarSdk.Networks.TESTNET;
 
-      const sponsorKeypair = StellarSdk.Keypair.fromSecret(sponsorSecret);
       const sponsorPublicKey = sponsorKeypair.publicKey();
       const server = new StellarSdk.Horizon.Server(
         process.env.HORIZON_URL || "https://horizon-testnet.stellar.org"

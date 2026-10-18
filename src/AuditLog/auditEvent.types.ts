@@ -76,6 +76,8 @@ export enum ExecutionAction {
   WALLET_DEPLOYED = "execution.wallet.deployed",
   CONTRACT_INVOKED = "execution.contract.invoked",
   CONTRACT_FAILED = "execution.contract.failed",
+  TRANSACTION_PREVIEW_GENERATED = "execution.transaction.preview_generated",
+  TRANSACTION_PREVIEW_REFUSED = "execution.transaction.preview_refused",
 }
 
 /** Policy category actions */
@@ -90,6 +92,13 @@ export enum PolicyAction {
   KYC_INITIATED = "policy.kyc.initiated",
   KYC_PASSED = "policy.kyc.passed",
   KYC_FAILED = "policy.kyc.failed",
+  AUTHORIZATION_DECISION = "policy.access.decision",
+  CHANNEL_MISMATCH = "policy.access.channel_mismatch",
+  ABUSE_ESCALATED = "policy.threat.abuse_escalated",
+  SECRET_ACCESSED = "policy.secret.accessed",
+  SECRET_ACCESS_DENIED = "policy.secret.access_denied",
+  SECRET_ROTATED = "policy.secret.rotated",
+  SECRET_REVOKED = "policy.secret.revoked",
 }
 
 /** Integration category actions */

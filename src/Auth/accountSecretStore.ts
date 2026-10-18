@@ -2,6 +2,44 @@ import fs from "fs";
 import path from "path";
 import logger from "../config/logger";
 import { decrypt } from "../utils/encryption";
+import {
+  isSharedEnvironment,
+  resolveDeploymentEnvironment,
+} from "../Security/secrets/environment";
+
+/** Decrypted account data is dropped from memory after this long. */
+const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Errors from this module never carry decrypted material: JSON.parse and
+ * crypto errors can echo their input, so they are replaced with codes.
+ */
+export class AccountSecretError extends Error {
+  constructor(
+    public readonly code:
+      | "not_configured"
+      | "source_missing"
+      | "plaintext_forbidden"
+      | "decrypt_failed"
+      | "malformed_payload"
+      | "account_not_found",
+    message: string
+  ) {
+    super(message);
+    this.name = "AccountSecretError";
+  }
+}
+
+function plaintextAllowed(): boolean {
+  if (process.env.ALLOW_PLAINTEXT_ACCOUNTS !== "true") return false;
+  if (isSharedEnvironment(resolveDeploymentEnvironment())) {
+    throw new AccountSecretError(
+      "plaintext_forbidden",
+      "ALLOW_PLAINTEXT_ACCOUNTS is not permitted in staging or production"
+    );
+  }
+  return true;
+}
 
 export interface AccountData {
   userId: string;
@@ -25,23 +63,26 @@ function loadEncryptedAccountsPayload(): string {
   if (encryptedJsonPath) {
     const resolvedPath = resolveFilePath(encryptedJsonPath);
     if (!fs.existsSync(resolvedPath)) {
-      throw new Error(
+      throw new AccountSecretError(
+        "source_missing",
         `Encrypted accounts file not found at path: ${resolvedPath}`
       );
     }
     return fs.readFileSync(resolvedPath, "utf8").trim();
   }
 
-  if (process.env.ALLOW_PLAINTEXT_ACCOUNTS === "true") {
+  if (plaintextAllowed()) {
     const plaintextPath = process.env.ACCOUNTS_JSON_PATH;
     if (!plaintextPath) {
-      throw new Error(
+      throw new AccountSecretError(
+        "not_configured",
         "ALLOW_PLAINTEXT_ACCOUNTS=true is set but ACCOUNTS_JSON_PATH is missing"
       );
     }
     const resolvedPath = resolveFilePath(plaintextPath);
     if (!fs.existsSync(resolvedPath)) {
-      throw new Error(
+      throw new AccountSecretError(
+        "source_missing",
         `Plaintext accounts file not found at path: ${resolvedPath}`
       );
     }
@@ -51,7 +92,8 @@ function loadEncryptedAccountsPayload(): string {
     return fs.readFileSync(resolvedPath, "utf8");
   }
 
-  throw new Error(
+  throw new AccountSecretError(
+    "not_configured",
     "Encrypted account secrets are not configured. Set ENCRYPTED_ACCOUNTS_JSON_PATH or ENCRYPTED_ACCOUNTS_JSON_B64."
   );
 }
@@ -61,23 +103,33 @@ function parseAccountData(payload: string): AccountData[] {
 
   try {
     rawJson = decrypt(payload);
-  } catch (err) {
-    if (process.env.ALLOW_PLAINTEXT_ACCOUNTS === "true") {
+  } catch {
+    if (plaintextAllowed()) {
       logger.warn(
         "Falling back to plaintext account JSON because ALLOW_PLAINTEXT_ACCOUNTS=true"
       );
     } else {
-      throw new Error(
-        `Failed to decrypt account secrets payload: ${
-          err instanceof Error ? err.message : "unknown error"
-        }`
+      throw new AccountSecretError(
+        "decrypt_failed",
+        "Failed to decrypt account secrets payload"
       );
     }
   }
 
-  const parsed = JSON.parse(rawJson);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch {
+    throw new AccountSecretError(
+      "malformed_payload",
+      "Account secret payload is not valid JSON"
+    );
+  }
   if (!Array.isArray(parsed)) {
-    throw new Error("Account secret payload must resolve to an array");
+    throw new AccountSecretError(
+      "malformed_payload",
+      "Account secret payload must resolve to an array"
+    );
   }
 
   return parsed as AccountData[];
@@ -85,20 +137,33 @@ function parseAccountData(payload: string): AccountData[] {
 
 export class AccountSecretStore {
   private accountsCache?: AccountData[];
+  private cacheExpiresAt = 0;
+
+  constructor(
+    private readonly cacheTtlMs = Number(process.env.ACCOUNT_SECRET_CACHE_TTL_MS) || DEFAULT_CACHE_TTL_MS,
+    private readonly now: () => number = Date.now
+  ) {}
 
   getAccounts(): AccountData[] {
-    if (!this.accountsCache) {
+    if (!this.accountsCache || this.now() >= this.cacheExpiresAt) {
       const payload = loadEncryptedAccountsPayload();
       this.accountsCache = parseAccountData(payload);
+      this.cacheExpiresAt = this.now() + this.cacheTtlMs;
     }
     return this.accountsCache;
   }
 
-  getAccountByUserId<T extends AccountData = AccountData>(userId: string): T {
+  /**
+   * @param workflow Which flow needs the credential; recorded with the access
+   *                 (never the credential itself).
+   */
+  getAccountByUserId<T extends AccountData = AccountData>(userId: string, workflow = "unspecified"): T {
     const account = this.getAccounts().find((item) => item.userId === userId);
     if (!account) {
-      throw new Error(`Account secret not found for userId: ${userId}`);
+      logger.warn("Wallet credential lookup failed", { userId, workflow, outcome: "account_not_found" });
+      throw new AccountSecretError("account_not_found", `Account secret not found for userId: ${userId}`);
     }
+    logger.info("Wallet credential accessed", { userId, workflow });
     return account as T;
   }
 
@@ -109,6 +174,7 @@ export class AccountSecretStore {
    */
   clearCache(): void {
     this.accountsCache = undefined;
+    this.cacheExpiresAt = 0;
   }
 }
 

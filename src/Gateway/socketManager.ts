@@ -3,6 +3,7 @@ import { Server as HTTPServer } from "http";
 import logger from "../config/logger";
 import { EventEmitter } from "events";
 import { evaluateRealtimeAbusePolicy } from "../Security";
+import { authorizeSocketOperation } from "../Security/authorization/channelAdapters";
 import { propagateSocketContext } from "../observability/socketContext";
 import {
   DEFAULT_MAX_BUFFERED_EVENTS,
@@ -331,7 +332,8 @@ export class SocketManager {
 
       // Handle subscription to transaction updates — requires prior authentication
       socket.on("subscribe:transactions", async (transactionId?: string) => {
-        if (!client.userId) {
+        const client = this.connectedClients.get(socket.id);
+        if (!client?.userId) {
           socket.emit("error", {
             message: "Authentication required before subscribing.",
           });
@@ -349,6 +351,19 @@ export class SocketManager {
           },
           { transactionId }
         );
+        const authz = await authorizeSocketOperation(
+          { userId: client.userId, role: client.role },
+          "realtime:subscribe",
+          "subscribe:transactions"
+        );
+        if (!authz.allowed) {
+          socket.emit("error", {
+            message: "Not authorized for this subscription.",
+            code: authz.reason,
+            decisionId: authz.decisionId,
+          });
+          return;
+        }
         if (!abuseDecision.allowed) {
           socket.emit("error", {
             message: abuseDecision.reason,
@@ -367,7 +382,8 @@ export class SocketManager {
 
       // Handle subscription to bot updates — requires prior authentication
       socket.on("subscribe:bot-alerts", async (botId?: string) => {
-        if (!client.userId) {
+        const client = this.connectedClients.get(socket.id);
+        if (!client?.userId) {
           socket.emit("error", {
             message: "Authentication required before subscribing.",
           });
@@ -385,6 +401,19 @@ export class SocketManager {
           },
           { botId }
         );
+        const authz = await authorizeSocketOperation(
+          { userId: client.userId, role: client.role },
+          "realtime:subscribe",
+          "subscribe:bot-alerts"
+        );
+        if (!authz.allowed) {
+          socket.emit("error", {
+            message: "Not authorized for this subscription.",
+            code: authz.reason,
+            decisionId: authz.decisionId,
+          });
+          return;
+        }
         if (!abuseDecision.allowed) {
           socket.emit("error", {
             message: abuseDecision.reason,

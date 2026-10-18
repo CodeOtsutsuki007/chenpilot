@@ -1,6 +1,7 @@
 // chenpilot/src/Agents/capability/CapabilityManager.ts
 import { createHmac, randomBytes, randomUUID } from "crypto";
 import logger from "../../config/logger";
+import { secretManager } from "../../Security/secrets";
 import {
   CapabilityGrant,
   CapabilityValidationContext,
@@ -31,11 +32,15 @@ export class CapabilityManager {
   private activeGrants: Map<string, CapabilityGrant> = new Map();
 
   constructor(secretKey?: string) {
+    // JWT_SECRET is a legacy fallback; the hard-coded development default
+    // is only honoured locally and refused in staging and production.
     this.secretKey =
       secretKey ||
-      process.env.CAPABILITY_SECRET_KEY ||
-      process.env.JWT_SECRET ||
-      "chenpilot-capability-secret-key-default-2026";
+      (!process.env.CAPABILITY_SECRET_KEY && process.env.JWT_SECRET) ||
+      secretManager.readEnvSecretSync("capability.signing-key", {
+        workflow: "capability",
+        actor: "capability-manager",
+      });
   }
 
   /**

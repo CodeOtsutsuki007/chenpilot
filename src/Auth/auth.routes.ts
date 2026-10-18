@@ -13,6 +13,12 @@ import { asyncHandler } from "../utils/expressAsync";
 import logger from "../config/logger";
 import { auditLogService } from "../AuditLog/auditLog.service";
 import { AuditAction, AuditSeverity } from "../AuditLog/auditLog.entity";
+import {
+  createAbusePreventionMiddleware,
+  defaultAbusePreventionService,
+  extractClientIp,
+  normalizeIp,
+} from "../Security/abusePrevention";
 
 const router = Router();
 
@@ -28,6 +34,7 @@ const router = Router();
  */
 router.post(
   "/login",
+  createAbusePreventionMiddleware("auth.login"),
   validateBody(LoginDto),
   asyncHandler(async (req, res) => {
     const { name } = req.body as LoginDto;
@@ -35,6 +42,15 @@ router.post(
     const user = await userService.getUserByName(name);
 
     if (!user) {
+      // Unknown-name logins are account probing signals.
+      defaultAbusePreventionService.recordFailure(
+        {
+          surface: "api",
+          action: "auth.login",
+          subject: { ipAddress: normalizeIp(extractClientIp(req)) },
+        },
+        "login_failed"
+      );
       await auditLogService.logFromRequest(req, AuditAction.LOGIN_FAILED, {
         severity: AuditSeverity.WARNING,
         success: false,

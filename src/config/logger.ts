@@ -3,19 +3,26 @@ import DailyRotateFile from "winston-daily-rotate-file";
 import path from "path";
 import { getObservabilityLogFields } from "../observability";
 import { SecretBuffer } from "../utils/secretBuffer";
+import { isSensitiveKey, redactSecretsInString } from "../Security/secrets/redaction";
 
-// Sensitive fields to redact from logs
+// PII fields to redact from logs. Secret-bearing fields (keys, tokens,
+// passwords, ...) are matched case-insensitively by isSensitiveKey.
 const SENSITIVE_FIELDS = [
-  "pk", "privateKey", "password", "token", "secret",
   "fullName", "dateOfBirth", "email", "phoneNumber",
   "addressLine1", "addressLine2", "postalCode", "countryCode",
   "documentId", "fileUrl"
 ];
 
+function isRedactedKey(key: string): boolean {
+  return SENSITIVE_FIELDS.includes(key) || isSensitiveKey(key);
+}
+
 /**
- * Recursively redacts sensitive data from objects
+ * Recursively redacts sensitive data from objects. Secret-looking values
+ * (Stellar seeds, JWTs, bearer tokens, API keys, PEM keys, URL credentials)
+ * are also scrubbed from free-text strings.
  */
-export function redactSensitiveData(obj: unknown): unknown {
+export function redactSensitiveData(obj: unknown, seen: WeakSet<object> = new WeakSet()): unknown {
   if (obj === null || obj === undefined) return obj;
 
   // SecretBuffer instances must never have their contents exposed.
@@ -23,29 +30,44 @@ export function redactSensitiveData(obj: unknown): unknown {
     return obj.toString();
   }
 
+  if (typeof obj === "string") {
+    return redactSecretsInString(obj);
+  }
+
+  if (typeof obj !== "object") return obj;
+
+  if (seen.has(obj as object)) return "[Circular]";
+  seen.add(obj as object);
+
+  if (obj instanceof Error) {
+    return {
+      name: obj.name,
+      message: redactSecretsInString(obj.message),
+      stack: obj.stack ? redactSecretsInString(obj.stack) : undefined,
+    };
+  }
+
   if (Array.isArray(obj)) {
-    return obj.map(redactSensitiveData);
+    return obj.map((item) => redactSensitiveData(item, seen));
   }
 
-  if (typeof obj === "object") {
-    const redacted: Record<string, unknown> = {};
-    for (const key in obj as Record<string, unknown>) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        redacted[key] = SENSITIVE_FIELDS.includes(key)
-          ? "[REDACTED]"
-          : redactSensitiveData((obj as Record<string, unknown>)[key]);
-      }
+  const redacted: Record<string, unknown> = {};
+  for (const key in obj as Record<string, unknown>) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      redacted[key] = isRedactedKey(key)
+        ? "[REDACTED]"
+        : redactSensitiveData((obj as Record<string, unknown>)[key], seen);
     }
-    return redacted;
   }
-
-  return obj;
+  return redacted;
 }
 
 // Custom format to redact sensitive data
 const redactFormat = winston.format((info: Record<string, unknown>) => {
   if (typeof info.message === "object") {
     info.message = redactSensitiveData(info.message);
+  } else if (typeof info.message === "string") {
+    info.message = redactSecretsInString(info.message);
   }
 
   const { level, message, timestamp, ...meta } = info;

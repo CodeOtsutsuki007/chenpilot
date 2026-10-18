@@ -3,6 +3,24 @@ import AppDataSource from "../config/Datasource";
 import logger from "../config/logger";
 import { QueueJob } from "./job.entity";
 import { getExecutionContext } from "../observability/context";
+import { evaluateJobAbusePolicy } from "../Security/abusePrevention/channelGuards";
+import { AbuseEvaluationResult } from "../Security/abusePrevention/types";
+
+/** Thrown when a user schedules background work faster than the abuse policy allows. */
+export class JobThrottledError extends Error {
+  constructor(
+    public readonly jobType: string,
+    public readonly decision: AbuseEvaluationResult
+  ) {
+    super(`Job ${jobType} rejected by abuse policy: ${decision.reason ?? decision.decision}`);
+    this.name = "JobThrottledError";
+  }
+}
+
+export type JobAbuseGuard = (jobType: string, userId: string) => Promise<AbuseEvaluationResult>;
+
+const defaultJobAbuseGuard: JobAbuseGuard = (jobType, userId) =>
+  evaluateJobAbusePolicy(jobType, { userId });
 
 export interface EnqueueJobInput {
   queue: string;
@@ -23,13 +41,30 @@ export interface QueueStatsRow {
 }
 
 export class JobQueueService {
-  constructor(private readonly dataSource: DataSource = AppDataSource) {}
+  constructor(
+    private readonly dataSource: DataSource = AppDataSource,
+    private readonly abuseGuard: JobAbuseGuard = defaultJobAbuseGuard
+  ) {}
 
   private get repository(): Repository<QueueJob> {
     return this.dataSource.getRepository(QueueJob);
   }
 
   async enqueue(input: EnqueueJobInput): Promise<QueueJob> {
+    // User-initiated work is throttled before it reaches the queue; system
+    // jobs (no userId) are not subject to per-user limits.
+    if (input.userId) {
+      const decision = await this.abuseGuard(input.jobType, input.userId);
+      if (!decision.allowed) {
+        logger.warn("Queue job rejected by abuse policy", {
+          jobType: input.jobType,
+          userId: input.userId,
+          policyId: decision.policyId,
+        });
+        throw new JobThrottledError(input.jobType, decision);
+      }
+    }
+
     const job = this.repository.create({
       queue: input.queue,
       jobType: input.jobType,

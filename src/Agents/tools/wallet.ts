@@ -109,7 +109,7 @@ export class WalletTool extends BaseTool {
    * @throws Error if account not found
    */
   private getAccount(userId: string): AccountData {
-    const account = accountSecretStore.getAccountByUserId<AccountData>(userId);
+    const account = accountSecretStore.getAccountByUserId<AccountData>(userId, "wallet");
     if (!account) throw new Error(`Account not found: ${userId}`);
     return account;
   }
