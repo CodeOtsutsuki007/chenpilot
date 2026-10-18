@@ -17,6 +17,10 @@ import {
 } from "../../Security/promptIsolation/SecurityAuditor";
 import logger from "../../config/logger";
 import { RiskLevel } from "../../Auth/userPreferences.entity";
+import {
+  issuerResolutionService,
+  IssuerResolutionResult,
+} from "./issuerResolution";
 
 export interface PlannerContext {
   userId: string;
@@ -33,6 +37,10 @@ export interface PlannerContext {
     smallTransactionThreshold: number;
     defaultSlippage: number | null;
   };
+  /** Explicit issuer selections for ambiguous assets */
+  explicitIssuers?: Record<string, string>;
+  /** Whether to prompt for issuer selection on ambiguity */
+  promptOnAmbiguity?: boolean;
 }
 
 export interface PlannerConstraints {
@@ -109,6 +117,14 @@ export class AgentPlanner {
           requiresApproval: false,
           summary: "Plan for empty input",
         });
+      }
+
+      // Check for ambiguous asset symbols and resolve issuers
+      const issuerResolution = this.resolveIssuers(context);
+      if (issuerResolution.needsPrompt) {
+        throw new Error(
+          `Ambiguous asset symbols detected: ${issuerResolution.ambiguousSymbols.join(", ")}. Please specify issuers.\n\n${issuerResolution.prompt}`
+        );
       }
 
       const sorobanPlan = parseSorobanIntent(context.userInput);
@@ -217,6 +233,46 @@ export class AgentPlanner {
     }
 
     return response as WorkflowPlan;
+  }
+
+  /**
+   * Resolve issuers for ambiguous asset symbols in user input
+   */
+  private resolveIssuers(context: PlannerContext): {
+    needsPrompt: boolean;
+    ambiguousSymbols: string[];
+    prompt?: string;
+  } {
+    const ambiguousSymbols =
+      issuerResolutionService.extractAmbiguousAssets(context.userInput);
+
+    if (ambiguousSymbols.length === 0) {
+      return { needsPrompt: false, ambiguousSymbols: [] };
+    }
+
+    // Check if all ambiguous symbols have explicit issuers
+    const unresolved = ambiguousSymbols.filter(
+      (symbol) => !context.explicitIssuers?.[symbol]
+    );
+
+    if (unresolved.length === 0) {
+      return { needsPrompt: false, ambiguousSymbols: [] };
+    }
+
+    // Generate prompt for unresolved symbols
+    if (context.promptOnAmbiguity !== false) {
+      const prompts = unresolved.map((symbol) =>
+        issuerResolutionService.generateIssuerSelectionPrompt(symbol)
+      );
+      return {
+        needsPrompt: true,
+        ambiguousSymbols: unresolved,
+        prompt: prompts.join("\n\n"),
+      };
+    }
+
+    // If prompting is disabled, use default issuers
+    return { needsPrompt: false, ambiguousSymbols: [] };
   }
 
   private buildPlannerPrompt(
