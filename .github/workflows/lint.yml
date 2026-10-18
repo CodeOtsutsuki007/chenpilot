@@ -75,3 +75,18 @@ jobs:
 
       - name: Check formatting
         run: npx prettier --check "src/Agents/sandbox/**" "src/Agents/registry/**" "src/Agents/planner/**"
+  privilege-graph:
+    name: Privilege graph review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm pkg set 'devDependencies.prettier=^3.5.3' && npm install --legacy-peer-deps
+
+      - name: Check committed privilege graph matches the policy catalog
+        run: npm run authz:graph:check

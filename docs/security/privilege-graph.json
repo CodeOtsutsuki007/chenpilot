@@ -1,0 +1,570 @@
+{
+  "version": 1,
+  "principals": [
+    "role:admin",
+    "role:moderator",
+    "role:service",
+    "role:user"
+  ],
+  "resources": [
+    "admin:agents@http",
+    "admin:security@http",
+    "admin:users@http",
+    "agent:query@bot",
+    "agent:query@http",
+    "agent:query@websocket",
+    "audit:read@http",
+    "bot:session@bot",
+    "bot:session@http",
+    "chain:read@bot",
+    "chain:read@http",
+    "chain:read@job",
+    "chain:read@websocket",
+    "funding:deploy@http",
+    "funding:deploy@job",
+    "realtime:subscribe@websocket",
+    "swap:execute@bot",
+    "swap:execute@http",
+    "swap:execute@job",
+    "system:maintenance@job",
+    "transaction:preview@bot",
+    "transaction:preview@http",
+    "transaction:preview@websocket",
+    "transaction:submit@bot",
+    "transaction:submit@http",
+    "transaction:submit@job",
+    "wallet:transfer@bot",
+    "wallet:transfer@http",
+    "wallet:transfer@job"
+  ],
+  "edges": [
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "admin:agents@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "admin:security@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "admin:users@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "agent:query@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "agent:query@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "agent:query@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "audit:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "bot:session@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "bot:session@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "chain:read@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "chain:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "chain:read@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "chain:read@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "funding:deploy@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "funding:deploy@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "realtime:subscribe@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "swap:execute@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "swap:execute@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "swap:execute@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:preview@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:preview@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:preview@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:submit@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:submit@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "transaction:submit@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "wallet:transfer@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "wallet:transfer@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:admin",
+      "to": "wallet:transfer@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "agent:query@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "agent:query@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "agent:query@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "audit:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "bot:session@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "bot:session@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "chain:read@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "chain:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "chain:read@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "chain:read@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "funding:deploy@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "funding:deploy@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "realtime:subscribe@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "swap:execute@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "swap:execute@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "swap:execute@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:preview@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:preview@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:preview@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:submit@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:submit@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "transaction:submit@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "wallet:transfer@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "wallet:transfer@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:moderator",
+      "to": "wallet:transfer@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:service",
+      "to": "chain:read@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:service",
+      "to": "chain:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:service",
+      "to": "chain:read@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:service",
+      "to": "chain:read@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:service",
+      "to": "system:maintenance@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "agent:query@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "agent:query@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "agent:query@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "bot:session@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "bot:session@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "chain:read@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "chain:read@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "chain:read@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "chain:read@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "funding:deploy@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "funding:deploy@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "realtime:subscribe@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "swap:execute@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "swap:execute@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "swap:execute@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:preview@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:preview@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:preview@websocket"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:submit@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:submit@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "transaction:submit@job"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "wallet:transfer@bot"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "wallet:transfer@http"
+    },
+    {
+      "kind": "grant",
+      "from": "role:user",
+      "to": "wallet:transfer@job"
+    }
+  ],
+  "checks": [
+    {
+      "id": "check:admin:agents@http",
+      "resource": "admin:agents@http"
+    },
+    {
+      "id": "check:admin:security@http",
+      "resource": "admin:security@http"
+    },
+    {
+      "id": "check:admin:users@http",
+      "resource": "admin:users@http"
+    },
+    {
+      "id": "check:agent:query@bot",
+      "resource": "agent:query@bot"
+    },
+    {
+      "id": "check:agent:query@http",
+      "resource": "agent:query@http"
+    },
+    {
+      "id": "check:agent:query@websocket",
+      "resource": "agent:query@websocket"
+    },
+    {
+      "id": "check:audit:read@http",
+      "resource": "audit:read@http"
+    },
+    {
+      "id": "check:bot:session@bot",
+      "resource": "bot:session@bot"
+    },
+    {
+      "id": "check:bot:session@http",
+      "resource": "bot:session@http"
+    },
+    {
+      "id": "check:chain:read@bot",
+      "resource": "chain:read@bot"
+    },
+    {
+      "id": "check:chain:read@http",
+      "resource": "chain:read@http"
+    },
+    {
+      "id": "check:chain:read@job",
+      "resource": "chain:read@job"
+    },
+    {
+      "id": "check:chain:read@websocket",
+      "resource": "chain:read@websocket"
+    },
+    {
+      "id": "check:funding:deploy@http",
+      "resource": "funding:deploy@http"
+    },
+    {
+      "id": "check:funding:deploy@job",
+      "resource": "funding:deploy@job"
+    },
+    {
+      "id": "check:realtime:subscribe@websocket",
+      "resource": "realtime:subscribe@websocket"
+    },
+    {
+      "id": "check:swap:execute@bot",
+      "resource": "swap:execute@bot"
+    },
+    {
+      "id": "check:swap:execute@http",
+      "resource": "swap:execute@http"
+    },
+    {
+      "id": "check:swap:execute@job",
+      "resource": "swap:execute@job"
+    },
+    {
+      "id": "check:system:maintenance@job",
+      "resource": "system:maintenance@job"
+    },
+    {
+      "id": "check:transaction:preview@bot",
+      "resource": "transaction:preview@bot"
+    },
+    {
+      "id": "check:transaction:preview@http",
+      "resource": "transaction:preview@http"
+    },
+    {
+      "id": "check:transaction:preview@websocket",
+      "resource": "transaction:preview@websocket"
+    },
+    {
+      "id": "check:transaction:submit@bot",
+      "resource": "transaction:submit@bot"
+    },
+    {
+      "id": "check:transaction:submit@http",
+      "resource": "transaction:submit@http"
+    },
+    {
+      "id": "check:transaction:submit@job",
+      "resource": "transaction:submit@job"
+    },
+    {
+      "id": "check:wallet:transfer@bot",
+      "resource": "wallet:transfer@bot"
+    },
+    {
+      "id": "check:wallet:transfer@http",
+      "resource": "wallet:transfer@http"
+    },
+    {
+      "id": "check:wallet:transfer@job",
+      "resource": "wallet:transfer@job"
+    }
+  ]
+}

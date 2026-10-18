@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { createHash, createHmac } from "crypto";
 import AppDataSource from "../config/Datasource";
 import logger from "../config/logger";
+import { secretManager } from "./secrets";
 import {
   AssetRevocation,
   RevocationType,
@@ -68,6 +69,8 @@ export interface RevocationFeedEntry {
  *    verified independently.
  */
 export class AssetRevocationService {
+  private signingKey?: string;
+
   private get repo(): Repository<AssetRevocation> {
     return AppDataSource.getRepository(AssetRevocation);
   }
@@ -351,7 +354,12 @@ export class AssetRevocationService {
    * HMAC with a server-side secret provides integrity guarantees.
    */
   private signPayload(payload: string): string {
-    const secret = process.env.REVOCATION_SIGNING_KEY || "default-dev-signing-key";
+    // Local-only default; staging and production must set REVOCATION_SIGNING_KEY.
+    this.signingKey ??= secretManager.readEnvSecretSync("revocation.signing-key", {
+      workflow: "asset-revocation",
+      actor: "asset-revocation-service",
+    });
+    const secret = this.signingKey;
     return createHmac("sha256", secret).update(payload).digest("hex");
   }
 }

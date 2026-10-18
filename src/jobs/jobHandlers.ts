@@ -41,6 +41,7 @@ interface ProgressMonitorPayload {
 
 class DelayedTransactionJobHandler implements JobHandler {
   readonly jobType = "delayed_transaction.submit";
+  readonly operation = "transaction:submit";
   private readonly server = new StellarSdk.Horizon.Server(config.stellar.horizonUrl);
   private lastFeeCheck?: { fee: number; checkedAt: number };
   private readonly feeCacheTtlMs = 60000;
@@ -176,6 +177,7 @@ class DelayedTransactionJobHandler implements JobHandler {
 
 class FundingAutoDeploymentJobHandler implements JobHandler {
   readonly jobType = "funding.auto_deploy";
+  readonly operation = "funding:deploy";
   private readonly userRepository: Repository<User>;
 
   constructor() {

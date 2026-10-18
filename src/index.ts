@@ -15,6 +15,7 @@ import { retentionEngine } from "./lifecycle/retentionEngine";
 import { JobWorker } from "./jobs/jobWorker";
 import { buildDefaultJobHandlers } from "./jobs/jobHandlers";
 import { jobQueueService } from "./jobs/jobQueue.service";
+import { verifySecretConfiguration } from "./Security/secrets";
 
 class Server {
   private server: http.Server;
@@ -56,6 +57,10 @@ class Server {
           process.exit(0);
         });
       };
+      // Refuse to boot a shared environment with placeholder, revoked or
+      // mis-provisioned secrets.
+      await verifySecretConfiguration();
+
       console.log("Attempting to connect to DB...");
       await AppDataSource.initialize();
       console.log("DB connection established!");

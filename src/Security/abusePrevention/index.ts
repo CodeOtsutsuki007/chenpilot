@@ -4,3 +4,6 @@ export * from "./defaultPolicy";
 export * from "./channelGuards";
 export * from "./httpMiddleware";
 export * from "./serviceInstance";
+export * from "./policyOverrides";
+export * from "./executionGate";
+export * from "./telemetry";

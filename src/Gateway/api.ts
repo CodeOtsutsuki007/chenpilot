@@ -11,6 +11,7 @@ import { swaggerSpec } from "./swagger";
 import requestLogger from "../middleware/requestLogger";
 import {
   createAbusePreventionMiddleware,
+  defaultAbusePreventionService,
   ipBlacklistMiddleware,
   ipBlacklistRoutes,
 } from "../Security";
@@ -18,8 +19,9 @@ import {
 import { observabilityMiddleware, updateObservabilityContext } from "../observability";
 import { setTenantContext, setOptionalTenantContext } from "../Auth/tenantContext.middleware";
 
-import { authenticate } from "../Auth/auth";
 import UserService from "../Auth/user.service";
+import { unifiedAuthorizer } from "../Security/authorization/channelAdapters";
+import { principalForRole } from "../Security/authorization/operationCatalog";
 import { validateQuery } from "../Agents/validationService";
 import { intentAgent } from "../Agents/agents/intentagent";
 import { ErrorHandler } from "./middleware/errorHandler";
@@ -91,8 +93,30 @@ app.post("/query", sensitiveLimiter, async (req, res, next) => {
       component: "http.query",
     });
 
-    const user = await authenticate(userId);
-    if (!user) throw new UnauthorizedError("invalid credentials");
+    const user = userId ? await container.resolve(UserService).getUserById(userId) : null;
+    if (!user) {
+      // clientIP is set by sensitiveLimiter above.
+      defaultAbusePreventionService.recordFailure(
+        {
+          surface: "api",
+          action: "query",
+          subject: { ipAddress: (req as { clientIP?: string }).clientIP },
+        },
+        "auth_failed"
+      );
+      throw new UnauthorizedError("invalid credentials");
+    }
+
+    const authz = await unifiedAuthorizer.authorize({
+      operation: "agent:query",
+      channel: "http",
+      principal: principalForRole(user.id, user.role),
+      resource: "POST /query",
+    });
+    if (!authz.allowed) {
+      res.status(403).json({ success: false, code: authz.reason, decisionId: authz.decisionId });
+      return;
+    }
 
     const valid = await validateQuery(query, userId);
     if (!valid) throw new ValidationError("invalid query");
