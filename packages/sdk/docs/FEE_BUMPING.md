@@ -537,11 +537,11 @@ const results = await Promise.all(
 
 - [Soroban Resource Model](https://soroban.stellar.org/docs/fundamentals-and-concepts/resource-limits-fees)
 - [Stellar SDK Documentation](https://stellar.github.io/js-stellar-sdk/)
-- [SDK Core API Reference](./API.md)
+- [SDK README and API overview](../README.md)
 
 ## Support
 
 For issues or questions:
 
 - GitHub Issues: [github.com/gear5labs/chenpilot/issues](https://github.com/gear5labs/chenpilot/issues)
-- Documentation: [Full SDK Documentation](./README.md)
+- Documentation: [Full SDK Documentation](../README.md)

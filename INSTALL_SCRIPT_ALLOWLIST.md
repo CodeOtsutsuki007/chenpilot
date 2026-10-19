@@ -132,7 +132,7 @@ Edit `.pnpmrc` and add under the approved section:
 
 ## Related Documentation
 
-- [SECURITY.md](./SECURITY.md) - Overall security policy
+- [Security controls](./docs/security/README.md) - Agent security controls and secret management
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 - [Supply Chain Security Policy](#) - Enterprise security standards
 

@@ -221,7 +221,7 @@ The following checks run automatically in CI:
 - **[SUPPLY_CHAIN_SECURITY.md](./SUPPLY_CHAIN_SECURITY.md)** - Complete security policy
 - **[INSTALL_SCRIPT_ALLOWLIST.md](./INSTALL_SCRIPT_ALLOWLIST.md)** - Approved exceptions
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
-- **[SECURITY.md](./SECURITY.md)** - Security reporting
+- **[Security controls](./docs/security/README.md)** - Agent security controls and secret management
 
 ## 🆘 Getting Help
 
