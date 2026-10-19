@@ -1,8 +1,0 @@
-﻿C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\metrics-experiment-platform\.config.kiro
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\multi-region-failover\requirements.md
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\prompt-agent-version-control\.config.kiro
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\prompt-agent-version-control\requirements.md
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\simulation-stack-hardening\.config.kiro
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\simulation-stack-hardening\design.md
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\simulation-stack-hardening\requirements.md
-C:\Users\MENDOS\Desktop\chenpilot\.kiro\specs\simulation-stack-hardening\tasks.md

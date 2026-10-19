@@ -69,6 +69,25 @@ Browse all [good first issues](https://github.com/gear5labs/chenpilot/issues?q=l
 - **Testing**: Add unit tests for new logic in the `tests/unit` directory.
 - **Linting**: We use Husky and lint-staged. Your code will be automatically formatted and linted on commit.
 
+### Local diagnostics
+
+Save terminal captures and other local diagnostics (for example `tsc` or `jest` output written to a file) in the `.artifacts/` directory, never the repository root. `.artifacts/` and root-level `_*.txt` files are ignored by Git, and CI fails if a root-level `_*.txt` file is committed. If a capture is worth keeping as evidence, summarize it in the pull request description instead.
+
+### Documentation checks
+
+CI runs these checks on every push and pull request (`.github/workflows/docs-checks.yml`). Run them locally before you push:
+
+| Command | What it checks |
+| --- | --- |
+| `npm run docs:check` | Runs all of the checks below. |
+| `node scripts/docs/check-markdown-links.mjs` | Relative links in tracked Markdown resolve to existing files. Failures are reported as `source.md:line: broken link "target" -> resolved/path`. External URLs and `#anchors` are skipped. Generated or tool-owned files are excluded only by the explicit `linkCheck.exclude` rules (each with a reason) in `scripts/docs/docs-check.config.json`. |
+| `node scripts/docs/check-doc-index.mjs` | `INDEX.md` has no duplicate section headings, no duplicate links to the same document, and no stale paths, and its generated Documentation Map is up to date. |
+| `npm run docs:index` | Regenerates the Documentation Map block in `INDEX.md` from the Markdown files under `docs/`. Run it after you add, move, or retitle a document under `docs/`. Edit the curated entries above the block by hand. |
+| `node scripts/docs/check-archive.mjs` | Archived reports follow the [documentation archival policy](docs/DOCUMENTATION_ARCHIVAL_POLICY.md). |
+| `npm run test:docs` | Unit tests for the checkers (`tests/docs/`). |
+
+When an issue's implementation or delivery reports are complete, archive them as described in the [documentation archival policy](docs/DOCUMENTATION_ARCHIVAL_POLICY.md) instead of leaving them in the repository root.
+
 ### Configuration file convention
 
 Tool configuration files (ESLint, commitlint, etc.) use the `.mjs` or `.js` extension — not `.mts` or `.ts` — because most tools do not natively resolve TypeScript config files. Keep configs in JavaScript unless the tool explicitly documents TypeScript support.

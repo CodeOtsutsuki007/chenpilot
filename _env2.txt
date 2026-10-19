@@ -1,5 +1,0 @@
-﻿TS_LIB=True
-TS_FILES=bin|lib
-JEST=True
-TSJEST=True
-TYPES_JEST=True

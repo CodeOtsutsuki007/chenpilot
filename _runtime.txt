@@ -1,9 +1,0 @@
-'bun' is not recognized as an internal or external command,
-operable program or batch file.
-v24.18.0
-npm warn config optional Use `--omit=optional` to exclude optional dependencies, or
-npm warn config `--include=optional` to include them.
-npm warn config
-npm warn config       Default value does install optional deps unless otherwise omitted.
-12.0.1
-11.17.0

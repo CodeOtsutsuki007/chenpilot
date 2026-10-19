@@ -33,7 +33,10 @@
     "prepare": "husky",
     "gen:docs": "node scripts/generateTooDocs.mjs",
     "authz:graph": "ts-node --transpile-only scripts/generatePrivilegeGraph.ts",
-    "authz:graph:check": "ts-node --transpile-only scripts/generatePrivilegeGraph.ts --check"
+    "authz:graph:check": "ts-node --transpile-only scripts/generatePrivilegeGraph.ts --check",
+    "docs:index": "node scripts/docs/check-doc-index.mjs --write",
+    "docs:check": "node scripts/docs/check-root-artifacts.mjs && node scripts/docs/check-markdown-links.mjs && node scripts/docs/check-doc-index.mjs && node scripts/docs/check-archive.mjs",
+    "test:docs": "node --test tests/docs/*.test.mjs"
   },
   "lint-staged": {
     "*{.ts,.js,.mjs}": "eslint --fix",

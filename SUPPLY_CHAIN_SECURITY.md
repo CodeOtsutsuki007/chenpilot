@@ -539,7 +539,7 @@ npm run verify:supply-chain
 ## Related Documentation
 
 - [INSTALL_SCRIPT_ALLOWLIST.md](./INSTALL_SCRIPT_ALLOWLIST.md) - Approved exceptions
-- [SECURITY.md](./SECURITY.md) - General security policy
+- [Security controls](./docs/security/README.md) - Agent security controls and secret management
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 - [AUDIT_README.md](./contracts/AUDIT_README.md) - Smart contract auditing
 

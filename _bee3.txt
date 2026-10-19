@@ -1,8 +1,0 @@
-bee4fc1 Consolidate duplicate config files
-ddd3600 Add rate limiting specifically to KYC submission endpoints
-5d7b442 Redact KYC PII fields
-7d38503 Add JSDoc/TSDoc coverage
-edae35d Expanding Contributing MD file
-80fcfef gitignore .env.local
-334e2be  required PostgreSQL and Redis versions in README
-9ecf772 replace remaining any usage in src/
