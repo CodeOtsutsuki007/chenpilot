@@ -1,3 +1,0 @@
-tests/env.setup.ts
-tests/setup.ts
-tests/stellar.mock.ts

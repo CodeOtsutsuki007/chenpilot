@@ -13,3 +13,8 @@ contracts/target/
 *.tsbuildinfo
 *.log
 .DS_Store
+
+# Local diagnostics and terminal captures (command output saved for debugging).
+# Write them to .artifacts/ instead of the repository root. See CONTRIBUTING.md.
+/_*.txt
+.artifacts/

@@ -1,6 +1,0 @@
-6cfa851 https://github.com/Peculiarr7/chenpilot.git
-5a99a35 Merge pull request #942 from Jessepriase/fix/839-soroban-restore-required-outcomes
-9747239 Merge pull request #941 from Jessepriase/fix/838-soroban-auth-scope-vs-intent
-ada6496 Merge pull request #940 from Jessepriase/fix/837-reject-expired-soroban-auth
-a6208fa Merge pull request #418 from AugistineCreates/harden-strategy-registry
-1c09f4a Merge branch 'master' into harden-strategy-registry
