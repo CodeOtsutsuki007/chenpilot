@@ -6,6 +6,10 @@ import priceCacheService, {
   type PriceAssetIdentity,
 } from "./priceCache.service";
 import { multiHopPathFinder } from "./multiHopPathFinder";
+import {
+  priceFeedCircuitBreaker,
+  CircuitState,
+} from "../Execution/circuitBreaker";
 
 export type { PriceAssetIdentity };
 
@@ -216,14 +220,30 @@ export class StellarPriceService {
       };
     }
 
-    // Fetch live price from Stellar DEX.
+    // Fetch live price from Stellar DEX with circuit breaker protection
     try {
+      const assetPair = `${fromAsset}/${toAsset}`;
+
+      // Check circuit breaker state
+      if (!priceFeedCircuitBreaker.allowExecution()) {
+        logger.warn(`Circuit breaker is ${priceFeedCircuitBreaker.getState()} for ${assetPair}`);
+        return this.invalidQuote(
+          fromAsset,
+          toAsset,
+          amount,
+          "fetch_error",
+          0,
+          identity
+        );
+      }
+
       const paths = await this.server
         .strictSendPaths(sourceAsset, amount.toFixed(7), [destAsset])
         .call();
 
       if (!paths.records || paths.records.length === 0) {
         logger.warn(`No liquidity path found for ${fromAsset}/${toAsset}`);
+        priceFeedCircuitBreaker.recordFailure("No liquidity path found");
         return this.invalidQuote(
           fromAsset,
           toAsset,
@@ -238,6 +258,27 @@ export class StellarPriceService {
       const destAmount = parseFloat(bestPath.destination_amount);
       const price = destAmount / amount;
 
+      // Detect price anomalies
+      const anomalyDetection = priceFeedCircuitBreaker.detectAnomaly(
+        assetPair,
+        price
+      );
+
+      if (anomalyDetection.isAnomalous) {
+        logger.warn(`Price anomaly detected for ${assetPair}: ${anomalyDetection.reason}`);
+        priceFeedCircuitBreaker.recordFailure(
+          anomalyDetection.reason || "Price anomaly detected"
+        );
+        return this.invalidQuote(
+          fromAsset,
+          toAsset,
+          amount,
+          "fetch_error",
+          0,
+          identity
+        );
+      }
+
       await priceCacheService.setPrice(
         fromAsset,
         toAsset,
@@ -246,6 +287,9 @@ export class StellarPriceService {
         this.CACHE_TTL,
         identity
       );
+
+      // Record success in circuit breaker
+      priceFeedCircuitBreaker.recordSuccess(price, assetPair);
 
       const pathAssets = bestPath.path.map(
         (a: { asset_type: string; asset_code: string }) =>
@@ -268,6 +312,9 @@ export class StellarPriceService {
       };
     } catch (error) {
       logger.error("Error fetching price from Stellar DEX:", error);
+      priceFeedCircuitBreaker.recordFailure(
+        error instanceof Error ? error.message : String(error)
+      );
       return this.invalidQuote(
         fromAsset,
         toAsset,

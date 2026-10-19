@@ -42,6 +42,8 @@ import { createAbusePreventionMiddleware } from "../Security/abusePrevention";
 import abuseRoutes from "../Security/abusePrevention/abuse.routes";
 import authorizationRoutes from "../Security/authorization/authorization.routes";
 import { SecretAccessError, secretManager } from "../Security/secrets";
+import deploymentRoutes from "../Operations/deployment/deployment.routes";
+import circuitBreakerRoutes from "../Execution/circuitBreaker.routes";
 import { BotPlatform } from "../Bot/botSession.entity";
 import {
   BotMetricsDto,
@@ -111,6 +113,12 @@ router.use("/security/abuse", abuseRoutes);
 
 // Unified authorization policy (used by the bot to get the same decisions as the API)
 router.use("/authorization", authorizationRoutes);
+
+// Operations - deployment management (admin only)
+router.use("/ops/deployment", deploymentRoutes);
+
+// Execution - circuit breaker for price feeds (admin only)
+router.use("/execution/circuit-breaker", circuitBreakerRoutes);
 
 // Decoded, anti-phishing transaction previews (shared by bot and UI)
 router.use("/transactions/preview", transactionPreviewRoutes);

@@ -68,6 +68,7 @@ export * from "./schemaValidator";
 export * from "./sequenceManager";
 export * from "./stellarSequenceHelper";
 export * from "./sponsorship";
+export * from "./unifiedTransactionBuilder";
 export {
   StellarMetadataManager,
   createMetadataManager,
