@@ -10,14 +10,16 @@ import {
 } from "../metadata";
 
 // Mock the stellar-sdk
-jest.mock("stellar-sdk", () => ({
-  Server: jest.fn(() => ({
-    accounts: jest.fn(() => ({
-      accountId: jest.fn(() => ({
-        call: jest.fn(),
+jest.mock("@stellar/stellar-sdk", () => ({
+  Horizon: {
+    Server: jest.fn(() => ({
+      accounts: jest.fn(() => ({
+        accountId: jest.fn(() => ({
+          call: jest.fn(),
+        })),
       })),
     })),
-  })),
+  },
   Account: jest.fn((accountId, sequence) => ({
     accountId,
     sequence,
@@ -64,8 +66,8 @@ describe("StellarMetadataManager", () => {
 
     // Get the mocked server instance
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const StellarSDK = require("stellar-sdk");
-    mockServer = StellarSDK.Server.mock.results[0].value;
+    const StellarSDK = require("@stellar/stellar-sdk");
+    mockServer = StellarSDK.Horizon.Server.mock.results[0].value;
   });
 
   // ─── Constructor tests ─────────────────────────────────────────────────────
