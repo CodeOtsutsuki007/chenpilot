@@ -1,3 +1,7 @@
+> **Archived report.** Moved from the repository root on 2026-10-19 under the
+> [documentation archival policy](../../../DOCUMENTATION_ARCHIVAL_POLICY.md). Paths in
+> code spans below are relative to the repository root.
+
 # Issue #858 - In-Transit Bridge Accounting
 
 **Repository**: gear5labs/chenpilot  

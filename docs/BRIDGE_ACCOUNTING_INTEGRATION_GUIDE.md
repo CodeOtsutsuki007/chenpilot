@@ -1,7 +1,7 @@
 # Bridge Accounting Integration Guide
 
 **Related Issue**: #858  
-**Implementation Files**: See `ISSUE_858_IMPLEMENTATION.md`
+**Implementation Files**: See [ISSUE_858_IMPLEMENTATION.md](archive/implementation-reports/858-in-transit-bridge-accounting/ISSUE_858_IMPLEMENTATION.md) (archived report)
 
 This guide helps developers integrate the in-transit bridge accounting model into portfolio services, APIs, and UIs.
 
