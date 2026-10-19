@@ -1,0 +1,56 @@
+name: Repository Checks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  repository-checks:
+    name: Repository inventory and manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The checkers and their tests use only Node built-ins and npm, so no install step.
+      - name: Test the repository checkers
+        run: node --test tests/repo/*.test.mjs
+
+      - name: Only allowlisted generated files are tracked
+        run: node scripts/repo/check-generated-files.mjs
+
+      - name: Package aliases are declared where imported and imported where declared
+        run: node scripts/repo/check-dependency-aliases.mjs
+
+      - name: Install workflow is documented and pinned consistently
+        run: node scripts/repo/check-install-workflow.mjs
+
+      - name: Packed package manifests carry required metadata
+        run: node scripts/repo/check-package-manifests.mjs
+
+  clean-install:
+    name: Supported clean install leaves the lockfile unchanged
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout clean repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.13.1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: pnpm install --frozen-lockfile
+        run: node scripts/repo/verify-clean-install.mjs

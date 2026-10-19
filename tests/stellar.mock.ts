@@ -134,6 +134,4 @@ export const mockStellarSdk: Record<string, any> = {
   nativeToScVal: jest.fn((val: any) => val),
 };
 
-// Fixed: Only need to mock each package once
 jest.mock("@stellar/stellar-sdk", () => mockStellarSdk);
-jest.mock("stellar-sdk", () => mockStellarSdk);

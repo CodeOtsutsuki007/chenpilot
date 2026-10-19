@@ -37,6 +37,11 @@
   ],
   "author": "Chen Pilot Team",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gear5labs/chenpilot.git",
+    "directory": "packages/sdk"
+  },
   "dependencies": {
     "@stellar/stellar-sdk": "^14.4.3",
     "bip39": "^3.1.0",

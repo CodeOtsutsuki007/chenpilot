@@ -1,0 +1,141 @@
+{
+  "generatedFiles": {
+    "policy": "docs/GENERATED_FILES_POLICY.md",
+    "emitted": [
+      { "generated": ".js", "source": ".ts" },
+      { "generated": ".d.ts", "source": ".ts" },
+      { "generated": ".js.map", "source": ".ts" }
+    ],
+    "markers": ["@generated", "DO NOT EDIT"],
+    "markerLines": 5,
+    "tracked": [
+      {
+        "class": "lockfile",
+        "detect": [
+          "**/pnpm-lock.yaml",
+          "**/package-lock.json",
+          "**/Cargo.lock"
+        ],
+        "allow": [
+          "pnpm-lock.yaml",
+          "package-lock.json",
+          "packages/sdk/package-lock.json",
+          "packages/sdk/pnpm-lock.yaml",
+          "contracts/Cargo.lock"
+        ],
+        "generator": "pnpm install / npm install / cargo",
+        "reason": "Pins the exact dependency graph that CI and contributors install."
+      },
+      {
+        "class": "soroban-test-snapshot",
+        "detect": ["**/test_snapshots/**"],
+        "allow": ["contracts/*/test_snapshots/**/*.json"],
+        "generator": "cargo test (soroban-sdk testutils)",
+        "reason": "Golden ledger state compared by contract tests; reviewed in the PR that changes it."
+      },
+      {
+        "class": "contract-storage-snapshot",
+        "detect": ["**/*.snapshot.json"],
+        "allow": ["contracts/snapshots/*/v*.snapshot.json"],
+        "generator": "scripts/extract-storage-schema.ts",
+        "reason": "Released storage layout that upgrade compatibility checks compare against."
+      },
+      {
+        "class": "generated-doc",
+        "detect": ["docs/TOOLS.md", "docs/security/privilege-graph.json"],
+        "allow": ["docs/TOOLS.md", "docs/security/privilege-graph.json"],
+        "generator": "npm run gen:docs / npm run authz:graph",
+        "reason": "Reviewable reference output; authz:graph:check fails CI when it drifts from code."
+      }
+    ],
+    "buildOutputs": [
+      {
+        "class": "compiled-output",
+        "detect": ["dist/**", "**/dist/**", "**/*.tsbuildinfo"],
+        "probes": [
+          "dist/index.js",
+          "packages/sdk/dist/index.d.ts",
+          "tsconfig.tsbuildinfo"
+        ],
+        "generator": "tsc (npm run build, npm run build:sdk)"
+      },
+      {
+        "class": "contract-build-output",
+        "detect": ["contracts/target/**", "**/target/**"],
+        "probes": ["contracts/target/release/core_vault.wasm"],
+        "generator": "cargo build / cargo test"
+      },
+      {
+        "class": "typedoc-html",
+        "detect": [
+          "packages/sdk/docs/*.html",
+          "packages/sdk/docs/.nojekyll",
+          "packages/sdk/docs/assets/**",
+          "packages/sdk/docs/classes/**",
+          "packages/sdk/docs/enums/**",
+          "packages/sdk/docs/functions/**",
+          "packages/sdk/docs/interfaces/**",
+          "packages/sdk/docs/modules/**",
+          "packages/sdk/docs/types/**",
+          "packages/sdk/docs/variables/**"
+        ],
+        "probes": [
+          "packages/sdk/docs/index.html",
+          "packages/sdk/docs/assets/main.js",
+          "packages/sdk/docs/classes/Client.html"
+        ],
+        "generator": "npm --prefix packages/sdk run docs"
+      },
+      {
+        "class": "test-report",
+        "detect": ["coverage/**", "**/coverage/**", "redteam-report.json"],
+        "probes": [
+          "coverage/lcov.info",
+          "packages/sdk/coverage/lcov.info",
+          "redteam-report.json"
+        ],
+        "generator": "jest --coverage / npm run redteam"
+      },
+      {
+        "class": "packed-artifact",
+        "detect": ["**/*.tgz"],
+        "probes": [
+          "chen-pilot-sdk-core-0.1.0.tgz",
+          "packages/sdk/chen-pilot-sdk-core-0.1.0.tgz"
+        ],
+        "generator": "npm pack / pnpm pack"
+      }
+    ]
+  },
+  "dependencyAliases": {
+    "workspaces": [".", "packages/sdk", "packages/bot"],
+    "sources": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs", "**/*.cjs"],
+    "exclude": ["tests/repo/**"],
+    "groups": [
+      {
+        "packages": ["@stellar/stellar-sdk", "stellar-sdk"],
+        "reason": "stellar-sdk is the deprecated name of @stellar/stellar-sdk; a workspace declares at most one, and only one it imports."
+      }
+    ]
+  },
+  "packageManifests": {
+    "repositoryUrl": "git+https://github.com/gear5labs/chenpilot.git",
+    "required": [
+      "name",
+      "version",
+      "license",
+      "repository.type",
+      "repository.url",
+      "main"
+    ],
+    "entryPoints": ["main", "types", "typings", "module", "exports", "bin"],
+    "packages": [".", "packages/sdk"]
+  },
+  "installWorkflow": {
+    "packageManager": "pnpm",
+    "command": ["pnpm", "install", "--frozen-lockfile"],
+    "lockfiles": ["pnpm-lock.yaml"],
+    "docs": ["README.md", "CONTRIBUTING.md"],
+    "workflowsDir": ".github/workflows"
+  }
+}

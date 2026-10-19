@@ -3,8 +3,7 @@
  * Provides simplified utilities for building and validating Hash and Return memo types.
  */
 
-// @ts-ignore: dependency is provided at the workspace root
-import { Memo } from "stellar-sdk";
+import { Memo } from "@stellar/stellar-sdk";
 
 /**
  * Represents a memo value with its type

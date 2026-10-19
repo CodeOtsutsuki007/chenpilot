@@ -79,6 +79,7 @@ See detailed documentation:
 - [docs/EMERGENCY_COORDINATION_IMPLEMENTATION.md](docs/EMERGENCY_COORDINATION_IMPLEMENTATION.md) — Emergency Coordination Implementation Guide
 - [docs/ENCRYPTION_KEY_ROTATION.md](docs/ENCRYPTION_KEY_ROTATION.md) — Encryption key rotation runbook
 - [docs/EVENT_STANDARD.md](docs/EVENT_STANDARD.md) — Cross-Contract Event Standard
+- [docs/GENERATED_FILES_POLICY.md](docs/GENERATED_FILES_POLICY.md) — Generated Files Policy
 - [docs/MULTI_HOP_ARCHITECTURE.md](docs/MULTI_HOP_ARCHITECTURE.md) — Multi-Hop Trade Path Evaluation - Architecture
 - [docs/MULTI_HOP_TRADING.md](docs/MULTI_HOP_TRADING.md) — Multi-Hop Trade Path Evaluation
 - [docs/PLATFORM_VALIDATION_CONTRACTS.md](docs/PLATFORM_VALIDATION_CONTRACTS.md) — Platform-Wide Validation Contracts
