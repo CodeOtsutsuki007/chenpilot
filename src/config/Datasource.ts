@@ -111,7 +111,9 @@ const dbOptions: DataSourceOptions = {
     LedgerObservation,
     OutboxEvent,
   ],
-  migrations: [isDev ? "src/migrations/**/*.ts" : "dist/migrations/**/*.js"],
+  // Top level only: src/migrations/preflight/ holds tooling, not migrations,
+  // and TypeORM rejects any exported class without a timestamped name.
+  migrations: [isDev ? "src/migrations/*.ts" : "dist/migrations/*.js"],
   subscribers: [],
 };
 

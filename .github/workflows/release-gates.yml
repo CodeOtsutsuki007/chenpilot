@@ -91,6 +91,16 @@ jobs:
       - name: Adversarial red-team evaluation gate (#634)
         run: npm run redteam:check
 
+      - name: Example migrations against PostgreSQL (docs/DATA_MIGRATIONS.md)
+        run: npx jest tests/integration/migration_examples.integration.test.ts --runInBand
+        env:
+          MIGRATION_EXAMPLES_DB: "1"
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: test
+          DB_PASSWORD: test
+          DB_NAME: chenpilot_test
+
       - name: Webhook idempotency integration tests
         run: npm test --testPathPattern="webhookIdempotency.integration" --runInBand
         env:

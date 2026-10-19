@@ -1,0 +1,1508 @@
+{
+  "$comment": "Source of truth for docs/ENVIRONMENT_VARIABLES.md and `npm run preflight`. Regenerate the doc with `npm run env:docs` after editing. See docs/ENVIRONMENT_VARIABLES.md for field meanings.",
+  "doc": {
+    "file": "docs/ENVIRONMENT_VARIABLES.md",
+    "begin": "<!-- BEGIN GENERATED: env-vars (npm run env:docs) -->",
+    "end": "<!-- END GENERATED: env-vars -->"
+  },
+  "scan": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.js",
+      "scripts/**/*.ts",
+      "scripts/**/*.mjs",
+      "packages/bot/src/**/*.ts",
+      "*.js"
+    ],
+    "exclude": [
+      "**/*.test.ts",
+      "**/*.test.js",
+      "**/*.spec.ts",
+      "**/__tests__/**",
+      "scripts/env/**"
+    ],
+    "helpers": [
+      "requireEnv",
+      "parsePositiveInt",
+      "intFromEnv",
+      "floatFromEnv",
+      "envInt",
+      "envNumber"
+    ],
+    "keys": ["envVar", "envAddressKey"]
+  },
+  "services": {
+    "backend": "Backend API (`src/`, `server.js`)",
+    "bot": "Chat bot (`packages/bot`)"
+  },
+  "variables": [
+    {
+      "name": "NODE_ENV",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "development",
+      "secret": false,
+      "description": "Runtime mode. `development` loads migrations from `src/`, anything else from `dist/`."
+    },
+    {
+      "name": "APP_ENV",
+      "service": "backend",
+      "owner": "Security (`src/Security/secrets`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Deployment environment (`local`, `staging`, `production`); overrides `NODE_ENV` for secret policy."
+    },
+    {
+      "name": "DEPLOY_ENV",
+      "service": "backend",
+      "owner": "Security (`src/Security/secrets`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Alias for `APP_ENV`, used when `APP_ENV` is unset."
+    },
+    {
+      "name": "SECRETS_PROVISIONED_FOR",
+      "service": "backend",
+      "owner": "Security (`src/Security/secrets`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Environment the deployed secret bundle was provisioned for; a mismatch with the running environment is refused."
+    },
+    {
+      "name": "PORT",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "2333",
+      "secret": false,
+      "description": "HTTP port. The legacy root `server.js` defaults to `3000`."
+    },
+    {
+      "name": "LOG_LEVEL",
+      "service": "backend",
+      "owner": "Platform (`src/config/logger.ts`)",
+      "required": false,
+      "default": "info",
+      "secret": false,
+      "description": "Winston log level."
+    },
+    {
+      "name": "NODE_URL",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": true,
+      "default": null,
+      "secret": false,
+      "description": "Public base URL of this server; also used by Swagger and the Telegram bot."
+    },
+    {
+      "name": "ALLOWED_ORIGINS",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway`)",
+      "required": false,
+      "default": "*",
+      "secret": false,
+      "description": "CORS and Socket.IO allowed origins."
+    },
+    {
+      "name": "ADMIN_ALLOWED_IPS",
+      "service": "backend",
+      "owner": "Gateway (`src/config/config.ts`)",
+      "required": false,
+      "default": "",
+      "secret": false,
+      "description": "Comma-separated IPs or CIDRs allowed on admin routes. Empty allows all."
+    },
+    {
+      "name": "REALTIME_MAX_BUFFERED_EVENTS",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/socketManager.ts`)",
+      "required": false,
+      "default": "100",
+      "secret": false,
+      "description": "Per-socket realtime event buffer before slow-consumer handling."
+    },
+    {
+      "name": "INBOUND_JSON_LIMIT_BYTES",
+      "service": "backend",
+      "owner": "Gateway (`src/config/config.ts`)",
+      "required": false,
+      "default": "1048576",
+      "secret": false,
+      "description": "Maximum JSON request body size."
+    },
+    {
+      "name": "INBOUND_WEBHOOK_LIMIT_BYTES",
+      "service": "backend",
+      "owner": "Gateway (`src/config/config.ts`)",
+      "required": false,
+      "default": "1048576",
+      "secret": false,
+      "description": "Maximum webhook request body size."
+    },
+    {
+      "name": "INBOUND_ATTACHMENT_LIMIT_BYTES",
+      "service": "backend",
+      "owner": "Gateway (`src/config/config.ts`)",
+      "required": false,
+      "default": "26214400",
+      "secret": false,
+      "description": "Maximum attachment upload size."
+    },
+    {
+      "name": "EXTERNAL_REQUEST_DEADLINE_MS",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "10000",
+      "secret": false,
+      "description": "Deadline for outbound provider requests."
+    },
+    {
+      "name": "EXTERNAL_REQUEST_ATTEMPTS",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "3",
+      "secret": false,
+      "description": "Retry budget for outbound provider requests."
+    },
+    {
+      "name": "EXTERNAL_REQUEST_BYTES",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "5242880",
+      "secret": false,
+      "description": "Response size budget for outbound provider requests."
+    },
+    {
+      "name": "EXTERNAL_REQUEST_DOWNSTREAM_CALLS",
+      "service": "backend",
+      "owner": "Platform (`src/config/config.ts`)",
+      "required": false,
+      "default": "10",
+      "secret": false,
+      "description": "Downstream call budget per request."
+    },
+
+    {
+      "name": "DB_HOST",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": true,
+      "default": null,
+      "secret": false,
+      "description": "PostgreSQL host."
+    },
+    {
+      "name": "DB_PORT",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": "5432",
+      "secret": false,
+      "description": "PostgreSQL port.",
+      "validate": { "positiveInteger": true }
+    },
+    {
+      "name": "DB_USERNAME",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": true,
+      "default": null,
+      "secret": false,
+      "description": "PostgreSQL user."
+    },
+    {
+      "name": "DB_PASSWORD",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "PostgreSQL password. Optional for trust or peer authentication."
+    },
+    {
+      "name": "DB_NAME",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": true,
+      "default": null,
+      "secret": false,
+      "description": "PostgreSQL database name."
+    },
+    {
+      "name": "DB_POOL_MAX",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": "10",
+      "secret": false,
+      "description": "Connection pool ceiling."
+    },
+    {
+      "name": "DB_POOL_MIN",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": "2",
+      "secret": false,
+      "description": "Connection pool floor."
+    },
+    {
+      "name": "DB_POOL_ACQUIRE_TIMEOUT_MS",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": "5000",
+      "secret": false,
+      "description": "Wait for a free connection before failing (minimum 500)."
+    },
+    {
+      "name": "DB_POOL_IDLE_TIMEOUT_MS",
+      "service": "backend",
+      "owner": "Data (`src/config/Datasource.ts`)",
+      "required": false,
+      "default": "30000",
+      "secret": false,
+      "description": "Idle connection lifetime (minimum 1000)."
+    },
+
+    {
+      "name": "REDIS_HOST",
+      "service": "backend",
+      "owner": "Data (`src/config/config.ts`)",
+      "required": false,
+      "default": "localhost",
+      "secret": false,
+      "description": "Redis host for caching and rate limiting."
+    },
+    {
+      "name": "REDIS_PORT",
+      "service": "backend",
+      "owner": "Data (`src/config/config.ts`)",
+      "required": false,
+      "default": "6379",
+      "secret": false,
+      "description": "Redis port.",
+      "validate": { "positiveInteger": true }
+    },
+    {
+      "name": "REDIS_PASSWORD",
+      "service": "backend",
+      "owner": "Data (`src/config/config.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Redis password, when the server requires `AUTH`."
+    },
+    {
+      "name": "REDIS_DB",
+      "service": "backend",
+      "owner": "Data (`src/config/config.ts`)",
+      "required": false,
+      "default": "0",
+      "secret": false,
+      "description": "Redis logical database index."
+    },
+
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": true,
+      "default": null,
+      "secret": true,
+      "description": "Anthropic API key for the agent."
+    },
+    {
+      "name": "MODEL_PRIMARY",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "claude-3-5-haiku-20241022",
+      "secret": false,
+      "description": "Primary LLM model."
+    },
+    {
+      "name": "MODEL_FALLBACKS",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "claude-3-5-sonnet-20241022",
+      "secret": false,
+      "description": "Comma-separated fallback models in priority order."
+    },
+    {
+      "name": "MODEL_SELECTION_STRATEGY",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "quality_first",
+      "secret": false,
+      "description": "`quality_first`, `latency_first`, `cost_first` or `balanced`."
+    },
+    {
+      "name": "MODEL_VERIFY_EQUIVALENCE",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "true",
+      "secret": false,
+      "description": "Verify semantic equivalence before falling back. `false` disables."
+    },
+    {
+      "name": "MODEL_MAX_RETRIES",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "2",
+      "secret": false,
+      "description": "Retry attempts across models."
+    },
+    {
+      "name": "MODEL_DIFFERENTIAL_EVAL_ON_STARTUP",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "false",
+      "secret": false,
+      "description": "Run differential model evaluation at startup."
+    },
+    {
+      "name": "MODEL_MIN_QUALITY_SCORE",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "0.7",
+      "secret": false,
+      "description": "Minimum output quality score (0-1)."
+    },
+    {
+      "name": "AGENT_LLM_TIMEOUT",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "30000",
+      "secret": false,
+      "description": "LLM call timeout in ms."
+    },
+    {
+      "name": "AGENT_TOOL_TIMEOUT",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "60000",
+      "secret": false,
+      "description": "Tool execution timeout in ms."
+    },
+    {
+      "name": "AGENT_EXECUTION_TIMEOUT",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "120000",
+      "secret": false,
+      "description": "Agent workflow timeout in ms."
+    },
+    {
+      "name": "AGENT_PLAN_TIMEOUT",
+      "service": "backend",
+      "owner": "Agents (`src/config/config.ts`)",
+      "required": false,
+      "default": "180000",
+      "secret": false,
+      "description": "Multi-step plan timeout in ms."
+    },
+    {
+      "name": "AGENT_LLM_INPUT_COST_PER_MILLION_USD",
+      "service": "backend",
+      "owner": "Observability (`src/observability/agentPlanMetrics.ts`)",
+      "required": false,
+      "default": "0.8",
+      "secret": false,
+      "description": "Input token price used for plan cost metrics."
+    },
+    {
+      "name": "AGENT_LLM_OUTPUT_COST_PER_MILLION_USD",
+      "service": "backend",
+      "owner": "Observability (`src/observability/agentPlanMetrics.ts`)",
+      "required": false,
+      "default": "4",
+      "secret": false,
+      "description": "Output token price used for plan cost metrics."
+    },
+    {
+      "name": "AGENT_PLAN_TYPICAL_TOKENS",
+      "service": "backend",
+      "owner": "Observability (`src/observability/agentPlanMetrics.ts`)",
+      "required": false,
+      "default": "4096",
+      "secret": false,
+      "description": "Typical plan token count used as the anomaly baseline."
+    },
+    {
+      "name": "AGENT_PLAN_TOKEN_ANOMALY_MULTIPLIER",
+      "service": "backend",
+      "owner": "Observability (`src/observability/agentPlanMetrics.ts`)",
+      "required": false,
+      "default": "3",
+      "secret": false,
+      "description": "Multiple of the baseline that flags a plan as anomalous."
+    },
+    {
+      "name": "PLAN_SIGNING_KEY",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/planner`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Private key that signs plan hashes. Plans are unsigned when unset."
+    },
+    {
+      "name": "INTERVENTION_SIGNING_SECRET",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/planner`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "HMAC secret for operator interventions. Interventions are disabled when unset."
+    },
+    {
+      "name": "CAPABILITY_SECRET_KEY",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/capability`)",
+      "required": false,
+      "default": "local-only development default",
+      "secret": true,
+      "description": "HMAC key that signs capability grants (at least 32 characters). Falls back to `JWT_SECRET`; the built-in default is refused outside local."
+    },
+    {
+      "name": "PROMPT_CHANGE_CONTROL_ENV",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/registry`)",
+      "required": false,
+      "default": "NODE_ENV",
+      "secret": false,
+      "description": "Environment used for prompt change-control policy."
+    },
+    {
+      "name": "PROMPT_CHANGE_CONTROL_SECRET",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/registry`)",
+      "required": false,
+      "requiredWhen": "prompt change control runs in production",
+      "default": null,
+      "secret": true,
+      "description": "Secret that signs prompt change approvals."
+    },
+    {
+      "name": "PROMPT_CHANGE_APPROVALS_REQUIRED",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/registry`)",
+      "required": false,
+      "default": "2",
+      "secret": false,
+      "description": "Approvals needed to promote a prompt change."
+    },
+    {
+      "name": "REDTEAM_MODEL",
+      "service": "backend",
+      "owner": "Agents (`src/redteam`)",
+      "required": false,
+      "default": "claude-3-5-haiku-20241022",
+      "secret": false,
+      "description": "Model under test for `npm run redteam`."
+    },
+    {
+      "name": "OPENAI_API_KEY",
+      "service": "backend",
+      "owner": "Services (`src/services/voiceTranscription.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "OpenAI key for Whisper voice transcription. Voice messages are rejected when unset."
+    },
+    {
+      "name": "OPENAI_API_URL",
+      "service": "backend",
+      "owner": "Services (`src/services/voiceTranscription.service.ts`)",
+      "required": false,
+      "default": "https://api.openai.com/v1/audio/transcriptions",
+      "secret": false,
+      "description": "Transcription endpoint."
+    },
+
+    {
+      "name": "JWT_SECRET",
+      "service": "backend",
+      "owner": "Auth (`src/config/config.ts`)",
+      "required": true,
+      "default": "secret-token",
+      "secret": true,
+      "description": "Legacy JWT secret, at least 32 characters. The built-in default is too short and fails startup, so it must be set.",
+      "validate": { "minLength": 32 }
+    },
+    {
+      "name": "JWT_ACCESS_SECRET",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/jwt.service.ts`)",
+      "required": true,
+      "default": null,
+      "secret": true,
+      "description": "Signs access tokens."
+    },
+    {
+      "name": "JWT_REFRESH_SECRET",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/jwt.service.ts`)",
+      "required": true,
+      "default": null,
+      "secret": true,
+      "description": "Signs refresh tokens."
+    },
+    {
+      "name": "JWT_RESET_EXPIRY",
+      "service": "backend",
+      "owner": "Auth (`src/config/config.ts`)",
+      "required": false,
+      "default": "1h",
+      "secret": false,
+      "description": "Password reset token lifetime."
+    },
+    {
+      "name": "WORKLOAD_TOKEN_SECRET",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/workloadIdentity.service.ts`)",
+      "required": false,
+      "requiredWhen": "service-to-service tokens are issued or verified",
+      "default": null,
+      "secret": true,
+      "description": "HMAC secret for workload identity tokens (at least 32 characters)."
+    },
+    {
+      "name": "WORKLOAD_TOKEN_SECRET_SECONDARY",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/workloadIdentity.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Previous workload secret accepted during rotation."
+    },
+    {
+      "name": "WORKLOAD_SERVICE_ID",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/workloadIdentity.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "This process's workload identity when issuing tokens."
+    },
+    {
+      "name": "WEBAUTHN_RP_ID",
+      "service": "backend",
+      "owner": "Auth (`src/webauthn.js`)",
+      "required": false,
+      "default": "localhost",
+      "secret": false,
+      "description": "WebAuthn relying-party ID."
+    },
+    {
+      "name": "WEBAUTHN_RP_NAME",
+      "service": "backend",
+      "owner": "Auth (`src/webauthn.js`)",
+      "required": false,
+      "default": "Chen Pilot",
+      "secret": false,
+      "description": "WebAuthn relying-party display name."
+    },
+    {
+      "name": "WEBAUTHN_ORIGIN",
+      "service": "backend",
+      "owner": "Auth (`src/webauthn.js`)",
+      "required": false,
+      "default": "http://localhost:3000",
+      "secret": false,
+      "description": "Expected WebAuthn origin."
+    },
+    {
+      "name": "ENCRYPTION_KEY",
+      "service": "backend",
+      "owner": "Security (`src/utils/encryption.ts`)",
+      "required": false,
+      "requiredUnless": "ENCRYPTION_KEYS_JSON",
+      "default": null,
+      "secret": true,
+      "description": "Legacy 64-character hex encryption key. Keep it during key rotation so old ciphertext stays readable.",
+      "validate": {
+        "pattern": "^[0-9a-fA-F]{64}$",
+        "hint": "a 64-character hex string"
+      }
+    },
+    {
+      "name": "ENCRYPTION_KEYS_JSON",
+      "service": "backend",
+      "owner": "Security (`src/utils/encryption.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Versioned keyring as JSON (`{\"id\":\"64-hex-key\"}`) for online rotation."
+    },
+    {
+      "name": "ENCRYPTION_ACTIVE_KEY_ID",
+      "service": "backend",
+      "owner": "Security (`src/utils/encryption.ts`)",
+      "required": false,
+      "requiredWhen": "`ENCRYPTION_KEYS_JSON` is set",
+      "default": null,
+      "secret": false,
+      "description": "Keyring entry used for new ciphertext."
+    },
+    {
+      "name": "ENCRYPTION_REVOKED_KEY_IDS",
+      "service": "backend",
+      "owner": "Security (`src/utils/encryption.ts`)",
+      "required": false,
+      "default": "",
+      "secret": false,
+      "description": "Comma-separated keyring IDs that may no longer decrypt."
+    },
+    {
+      "name": "REVOCATION_SIGNING_KEY",
+      "service": "backend",
+      "owner": "Security (`src/Security/assetRevocation.service.ts`)",
+      "required": false,
+      "requiredWhen": "running in staging or production",
+      "default": "local-only development default",
+      "secret": true,
+      "description": "HMAC key that signs asset revocation records (at least 32 characters)."
+    },
+    {
+      "name": "ABUSE_POLICY_FILE",
+      "service": "backend",
+      "owner": "Security (`src/Security/abusePrevention`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Path to a JSON abuse-policy override file."
+    },
+    {
+      "name": "ABUSE_POLICY_OVERRIDES",
+      "service": "backend",
+      "owner": "Security (`src/Security/abusePrevention`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Inline JSON abuse-policy overrides, applied after the file."
+    },
+    {
+      "name": "PROVIDER_GATE_MAX_CONCURRENT",
+      "service": "backend",
+      "owner": "Security (`src/Security/abusePrevention`)",
+      "required": false,
+      "default": "20",
+      "secret": false,
+      "description": "Concurrent outbound chain/provider calls."
+    },
+    {
+      "name": "PROVIDER_GATE_MAX_QUEUED",
+      "service": "backend",
+      "owner": "Security (`src/Security/abusePrevention`)",
+      "required": false,
+      "default": "100",
+      "secret": false,
+      "description": "Queued outbound chain/provider calls."
+    },
+    {
+      "name": "PROVIDER_GATE_QUEUE_TIMEOUT_MS",
+      "service": "backend",
+      "owner": "Security (`src/Security/abusePrevention`)",
+      "required": false,
+      "default": "10000",
+      "secret": false,
+      "description": "Queue wait before an outbound call is rejected."
+    },
+    {
+      "name": "ACCOUNTS_JSON_PATH",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/accountSecretStore.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Plaintext accounts file. Only read when `ALLOW_PLAINTEXT_ACCOUNTS=true` in a local environment."
+    },
+    {
+      "name": "ALLOW_PLAINTEXT_ACCOUNTS",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/accountSecretStore.ts`)",
+      "required": false,
+      "default": "false",
+      "secret": false,
+      "description": "Allow the plaintext accounts file. Refused in shared environments."
+    },
+    {
+      "name": "ENCRYPTED_ACCOUNTS_JSON_B64",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/accountSecretStore.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Encrypted accounts payload, base64. Takes precedence over the path."
+    },
+    {
+      "name": "ENCRYPTED_ACCOUNTS_JSON_PATH",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/accountSecretStore.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Path to the encrypted accounts file."
+    },
+    {
+      "name": "ACCOUNT_SECRET_CACHE_TTL_MS",
+      "service": "backend",
+      "owner": "Auth (`src/Auth/accountSecretStore.ts`)",
+      "required": false,
+      "default": "300000",
+      "secret": false,
+      "description": "Decrypted account cache lifetime."
+    },
+    {
+      "name": "KYC_PROVIDER",
+      "service": "backend",
+      "owner": "KYC (`src/config/config.ts`)",
+      "required": false,
+      "default": "mock",
+      "secret": false,
+      "description": "Registered KYC provider adapter."
+    },
+
+    {
+      "name": "SMTP_HOST",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "smtp.example.com",
+      "secret": false,
+      "description": "SMTP host."
+    },
+    {
+      "name": "SMTP_PORT",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "587",
+      "secret": false,
+      "description": "SMTP port."
+    },
+    {
+      "name": "SMTP_USER",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "",
+      "secret": false,
+      "description": "SMTP user."
+    },
+    {
+      "name": "SMTP_PASS",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "",
+      "secret": true,
+      "description": "SMTP password."
+    },
+    {
+      "name": "SMTP_FROM",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "noreply@chenpilot.com",
+      "secret": false,
+      "description": "Sender address."
+    },
+    {
+      "name": "EMAIL_VERIFICATION_ENABLED",
+      "service": "backend",
+      "owner": "Email (`src/config/config.ts`)",
+      "required": false,
+      "default": "false",
+      "secret": false,
+      "description": "Require email verification on sign-up."
+    },
+
+    {
+      "name": "STELLAR_NETWORK",
+      "service": "backend",
+      "owner": "Stellar (`src/config/config.ts`)",
+      "required": false,
+      "default": "testnet",
+      "secret": false,
+      "description": "`testnet` or `public`. Selects Horizon, passphrase and friendbot.",
+      "validate": { "oneOf": ["testnet", "public"] }
+    },
+    {
+      "name": "STELLAR_HORIZON_URL",
+      "service": "backend",
+      "owner": "Stellar (`src/config/config.ts`)",
+      "required": false,
+      "default": "derived from STELLAR_NETWORK",
+      "secret": false,
+      "description": "Horizon override. Also read by the bot `validate` command."
+    },
+    {
+      "name": "STELLAR_NETWORK_PASSPHRASE",
+      "service": "backend",
+      "owner": "Stellar (`src/config/config.ts`)",
+      "required": false,
+      "default": "derived from STELLAR_NETWORK",
+      "secret": false,
+      "description": "Network passphrase override."
+    },
+    {
+      "name": "STELLAR_BASE_RESERVE",
+      "service": "backend",
+      "owner": "Stellar (`src/config/config.ts`)",
+      "required": false,
+      "default": "0.5",
+      "secret": false,
+      "description": "Base reserve in XLM."
+    },
+    {
+      "name": "HORIZON_URL",
+      "service": "backend",
+      "owner": "Stellar (`src/services/networkConfig.ts`)",
+      "required": false,
+      "default": "derived from STELLAR_NETWORK",
+      "secret": false,
+      "description": "Horizon URL used by `networkConfig` and transaction routes."
+    },
+    {
+      "name": "NETWORK_PASSPHRASE",
+      "service": "backend",
+      "owner": "Stellar (`src/services/networkConfig.ts`)",
+      "required": false,
+      "default": "derived from STELLAR_NETWORK",
+      "secret": false,
+      "description": "Network passphrase used by `networkConfig`."
+    },
+    {
+      "name": "SOROBAN_RPC_URL",
+      "service": "backend",
+      "owner": "Stellar (`src/services/networkConfig.ts`)",
+      "required": false,
+      "default": "derived from STELLAR_NETWORK",
+      "secret": false,
+      "description": "Soroban RPC endpoint."
+    },
+    {
+      "name": "SOROBAN_RPC_URL_TESTNET",
+      "service": "backend",
+      "owner": "Stellar (`src/services/soroban/sdkAdapter.ts`)",
+      "required": false,
+      "default": "https://soroban-testnet.stellar.org",
+      "secret": false,
+      "description": "Soroban RPC for the SDK adapter on testnet."
+    },
+    {
+      "name": "SOROBAN_RPC_URL_MAINNET",
+      "service": "backend",
+      "owner": "Stellar (`src/services/soroban/sdkAdapter.ts`)",
+      "required": false,
+      "default": "https://soroban-mainnet.stellar.org",
+      "secret": false,
+      "description": "Soroban RPC for the SDK adapter on mainnet."
+    },
+    {
+      "name": "SPONSOR_SECRET_KEY",
+      "service": "backend",
+      "owner": "Stellar (`src/Gateway/transaction.routes.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Stellar secret that sponsors new accounts. Sponsorship returns 503 when unset."
+    },
+    {
+      "name": "STELLAR_WEBHOOK_SECRET",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/webhook.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Verifies Stellar webhook signatures."
+    },
+    {
+      "name": "WEBHOOK_SECRET",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/WebhookSecretManager.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Generic webhook secret for providers without their own."
+    },
+    {
+      "name": "*_WEBHOOK_SECRET",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/WebhookSecretManager.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Family: per-provider webhook secrets (`STELLAR`, `TELEGRAM`, `DISCORD`, `GITHUB`, `STRIPE`), read by computed name."
+    },
+    {
+      "name": "*_WEBHOOK_SECRET_PREVIOUS",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/WebhookSecretManager.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Family: previous provider secret accepted during zero-downtime rotation."
+    },
+    {
+      "name": "TELEGRAM_BOT_TOKEN",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/platformWebhook.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Telegram bot token; also used by the bot service."
+    },
+    {
+      "name": "DISCORD_PUBLIC_KEY",
+      "service": "backend",
+      "owner": "Gateway (`src/Gateway/platformWebhook.service.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Discord interaction signature public key."
+    },
+    {
+      "name": "STELLAR_ALERT_STREAM_ENABLED",
+      "service": "backend",
+      "owner": "Services (`src/services/horizonOperationStreamer.service.ts`)",
+      "required": false,
+      "default": "true",
+      "secret": false,
+      "description": "Stream Horizon operations for alerts. `false` disables."
+    },
+    {
+      "name": "STELLAR_ALERT_MIN_AMOUNT",
+      "service": "backend",
+      "owner": "Services (`src/services/horizonOperationStreamer.service.ts`)",
+      "required": false,
+      "default": "1000",
+      "secret": false,
+      "description": "Minimum amount that triggers an alert."
+    },
+    {
+      "name": "STELLAR_ALERT_STREAM_RECONNECT_MS",
+      "service": "backend",
+      "owner": "Services (`src/services/horizonOperationStreamer.service.ts`)",
+      "required": false,
+      "default": "5000",
+      "secret": false,
+      "description": "Reconnect delay for the alert stream."
+    },
+    {
+      "name": "FINALITY_CONFIRMATION_DEPTH",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Ledgers required before a transaction is final."
+    },
+    {
+      "name": "FINALITY_POLL_INTERVAL_MS",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Confirmation poll interval."
+    },
+    {
+      "name": "FINALITY_CONFIRMATION_TIMEOUT_MS",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Confirmation timeout."
+    },
+    {
+      "name": "FINALITY_PRIMARY_HORIZON_URL",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "STELLAR_HORIZON_URL",
+      "secret": false,
+      "description": "Horizon used for finality checks."
+    },
+    {
+      "name": "FINALITY_RECONCILIATION_HORIZON_URL",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "FINALITY_PRIMARY_HORIZON_URL",
+      "secret": false,
+      "description": "Independent Horizon used for reconciliation."
+    },
+    {
+      "name": "FINALITY_ANCESTRY_CHECK_DEPTH",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Ledger ancestry depth checked for reorgs."
+    },
+    {
+      "name": "FINALITY_MAX_RECONCILIATION_ATTEMPTS",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Reconciliation attempts before escalation."
+    },
+    {
+      "name": "FINALITY_RECONCILIATION_RETRY_DELAY_MS",
+      "service": "backend",
+      "owner": "Transactions (`src/services/finality`)",
+      "required": false,
+      "default": "network default",
+      "secret": false,
+      "description": "Delay between reconciliation attempts."
+    },
+
+    {
+      "name": "CORE_VAULT_CONTRACT_ID",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Core vault contract address. The binding is disabled when unset."
+    },
+    {
+      "name": "MULTI_HOP_SWAP_CONTRACT_ID",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Multi-hop swap contract address."
+    },
+    {
+      "name": "STRATEGY_REGISTRY_CONTRACT_ID",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Strategy registry contract address."
+    },
+    {
+      "name": "HTLC_CONTRACT_ID",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "HTLC contract address."
+    },
+    {
+      "name": "RBAC_CONTRACT_ID",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "RBAC contract address."
+    },
+    {
+      "name": "TESTNET_*",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Family: testnet-scoped overrides such as `TESTNET_CORE_VAULT_CONTRACT_ID`, `TESTNET_SOROBAN_RPC_URL`, `TESTNET_NETWORK_PASSPHRASE`."
+    },
+    {
+      "name": "PUBLIC_*",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Family: public-network overrides, same suffixes as `TESTNET_*`."
+    },
+    {
+      "name": "MAINNET_*",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Family: mainnet overrides, same suffixes as `TESTNET_*`."
+    },
+    {
+      "name": "FUTURENET_*",
+      "service": "backend",
+      "owner": "Contracts (`src/services/contracts/contractMetadataRegistry.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Family: futurenet overrides, same suffixes as `TESTNET_*`."
+    },
+    {
+      "name": "STRATEGY_REGISTRY_QUORUM",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/tools/strategyRegistry.ts`)",
+      "required": false,
+      "default": "3",
+      "secret": false,
+      "description": "Votes required to register a strategy."
+    },
+    {
+      "name": "STRATEGY_REGISTRY_EPOCH_MS",
+      "service": "backend",
+      "owner": "Agents (`src/Agents/tools/strategyRegistry.ts`)",
+      "required": false,
+      "default": "86400000",
+      "secret": false,
+      "description": "Voting epoch length."
+    },
+    {
+      "name": "MANIFEST_DIR",
+      "service": "backend",
+      "owner": "Contracts (`src/ContractIdentity`)",
+      "required": false,
+      "default": "./deployments",
+      "secret": false,
+      "description": "Directory of signed deployment manifests (`<network>/<contract>.manifest.json`)."
+    },
+    {
+      "name": "MANIFEST_ENFORCEMENT",
+      "service": "backend",
+      "owner": "Contracts (`src/ContractIdentity`)",
+      "required": false,
+      "default": "on",
+      "secret": false,
+      "description": "`off` makes the contract identity gate warn-only. Never use `off` for production traffic."
+    },
+    {
+      "name": "MANIFEST_SIGNING_KEY",
+      "service": "backend",
+      "owner": "Contracts (`src/ContractIdentity`)",
+      "required": false,
+      "requiredWhen": "publishing or rotating a deployment manifest",
+      "default": null,
+      "secret": true,
+      "description": "PEM private key that signs deployment manifests (`scripts/manifest-cli.ts`)."
+    },
+    {
+      "name": "DEFI_*",
+      "service": "backend",
+      "owner": "DeFi (`src/config/defiAdapters.ts`)",
+      "required": false,
+      "default": "per adapter",
+      "secret": false,
+      "description": "Family: `DEFI_<ADAPTER>_{ENABLED,API_URL,RPC_URL,TIMEOUT,RETRY_ATTEMPTS,RETRY_BACKOFF,CAPABILITY_*}` for each adapter. See `.env.example`."
+    },
+    {
+      "name": "SHADOW_ENABLED",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "false",
+      "secret": false,
+      "description": "Enable shadow execution (`true` or `1`)."
+    },
+    {
+      "name": "SHADOW_SAMPLE_RATE_PCT",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "10",
+      "secret": false,
+      "description": "Share of traffic shadowed (0-100)."
+    },
+    {
+      "name": "SHADOW_PROMOTION_MIN_EVALUATIONS",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "50",
+      "secret": false,
+      "description": "Evaluations required before promotion."
+    },
+    {
+      "name": "SHADOW_PROMOTION_MAX_DIVERGENCE_RATE",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "0.01",
+      "secret": false,
+      "description": "Maximum divergence rate allowed for promotion (0-1)."
+    },
+    {
+      "name": "SHADOW_PROMOTION_REQUIRED_APPROVALS",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "1",
+      "secret": false,
+      "description": "Approvals required for promotion."
+    },
+    {
+      "name": "SHADOW_RETENTION_DAYS",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "14",
+      "secret": false,
+      "description": "Shadow record retention."
+    },
+    {
+      "name": "SHADOW_MAX_RECORDS",
+      "service": "backend",
+      "owner": "Shadow (`src/shadow/shadow.config.ts`)",
+      "required": false,
+      "default": "50000",
+      "secret": false,
+      "description": "Shadow record cap."
+    },
+
+    {
+      "name": "BACKEND_URL",
+      "service": "bot",
+      "owner": "Bot (`packages/bot`)",
+      "required": false,
+      "default": "http://localhost:3000",
+      "secret": false,
+      "description": "Backend API base URL. The account-linking service defaults to `http://localhost:2333`."
+    },
+    {
+      "name": "API_BASE_URL",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/services`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Legacy alias for `BACKEND_URL` in account linking."
+    },
+    {
+      "name": "DASHBOARD_URL",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/commands`)",
+      "required": false,
+      "default": "BACKEND_URL/dashboard",
+      "secret": false,
+      "description": "Dashboard link shown by `/dashboard`."
+    },
+    {
+      "name": "BOT_WEBHOOK_PORT",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/index.ts`)",
+      "required": false,
+      "default": "3001",
+      "secret": false,
+      "description": "Port for the bot's webhook listener."
+    },
+    {
+      "name": "DISCORD_BOT_TOKEN",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/adapters/discord.ts`)",
+      "required": false,
+      "requiredWhen": "running the Discord adapter",
+      "default": null,
+      "secret": true,
+      "description": "Discord bot token."
+    },
+    {
+      "name": "DISCORD_CLIENT_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/adapters/discord.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Discord application ID. Slash commands are not deployed when unset."
+    },
+    {
+      "name": "DISCORD_ANNOUNCEMENT_CHANNEL_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/index.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Channel for release announcements."
+    },
+    {
+      "name": "TELEGRAM_ANNOUNCEMENT_CHAT_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/index.ts`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Chat for release announcements."
+    },
+    {
+      "name": "DISCORD_AUDIT_LOG_CHANNEL_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/discord`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Discord audit log channel."
+    },
+    {
+      "name": "MODERATION_LOG_CHANNEL_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/discord`)",
+      "required": false,
+      "default": "DISCORD_AUDIT_LOG_CHANNEL_ID",
+      "secret": false,
+      "description": "Discord moderation log channel."
+    },
+    {
+      "name": "MODERATION_LOG_CHAT_ID",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/commands/adapters`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Telegram moderation log chat."
+    },
+    {
+      "name": "MODERATION_ENABLED",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/moderation`)",
+      "required": false,
+      "default": "true",
+      "secret": false,
+      "description": "`false` disables moderation."
+    },
+    {
+      "name": "MODERATION_ACTION",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/moderation`)",
+      "required": false,
+      "default": "flag",
+      "secret": false,
+      "description": "`flag` (warn) or `block` (delete)."
+    },
+    {
+      "name": "DISCORD_SCAM_DETECTION_ACTION",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/moderation`)",
+      "required": false,
+      "default": null,
+      "secret": false,
+      "description": "Legacy fallback for `MODERATION_ACTION`."
+    },
+    {
+      "name": "SCAM_DETECTION_ENABLED",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/adapters/discord.ts`)",
+      "required": false,
+      "default": "true",
+      "secret": false,
+      "description": "Legacy Discord adapter scam-link detection."
+    },
+    {
+      "name": "SCAM_DETECTION_CHANNELS",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/adapters/discord.ts`)",
+      "required": false,
+      "default": "",
+      "secret": false,
+      "description": "Channel IDs to monitor. Empty monitors all public channels."
+    },
+    {
+      "name": "ADVANCED_ROLE_NAMES",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/adapters/discord.ts`)",
+      "required": false,
+      "default": "admin,moderator",
+      "secret": false,
+      "description": "Comma-separated Discord roles with advanced access (legacy adapter)."
+    },
+    {
+      "name": "DISCORD_ADVANCED_ROLES",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/commands/handlers/discover.ts`)",
+      "required": false,
+      "default": "DeFi Pro,Whale,Admin",
+      "secret": false,
+      "description": "Comma-separated Discord roles that unlock advanced `/discover` results."
+    },
+    {
+      "name": "GITHUB_WEBHOOK_SECRET",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/releaseWebhook.ts`)",
+      "required": false,
+      "default": null,
+      "secret": true,
+      "description": "Verifies GitHub release webhooks."
+    },
+    {
+      "name": "MARKET_DIGEST_ENABLED",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/services/marketDigestScheduler.ts`)",
+      "required": false,
+      "default": "false",
+      "secret": false,
+      "description": "Enable the daily market digest."
+    },
+    {
+      "name": "MARKET_DIGEST_TIME",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/services/marketDigestScheduler.ts`)",
+      "required": false,
+      "default": "09:00",
+      "secret": false,
+      "description": "Daily digest time, `HH:MM` UTC."
+    },
+    {
+      "name": "MARKET_DIGEST_RETRY_ATTEMPTS",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/services/marketDigestScheduler.ts`)",
+      "required": false,
+      "default": "3",
+      "secret": false,
+      "description": "Retries per digest target."
+    },
+    {
+      "name": "MARKET_DIGEST_RETRY_DELAY_MS",
+      "service": "bot",
+      "owner": "Bot (`packages/bot/src/services/marketDigestScheduler.ts`)",
+      "required": false,
+      "default": "30000",
+      "secret": false,
+      "description": "Delay between digest retries."
+    }
+  ],
+  "exemptions": [
+    {
+      "pattern": "LOCAL_CHAIN_*",
+      "reason": "Read only by the `src/simulation/test-local-chain.ts` harness script, not by a running service."
+    },
+    {
+      "pattern": "SOCKET_SERVER_URL",
+      "reason": "Read only by the `src/Gateway/manualTestClient.ts` manual test client."
+    },
+    {
+      "pattern": "PLAN_PUBLIC_KEY",
+      "reason": "Read only by the `src/Agents/planner/planHashExample.ts` example."
+    }
+  ]
+}
