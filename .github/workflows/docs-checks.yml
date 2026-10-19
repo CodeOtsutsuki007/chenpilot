@@ -19,8 +19,8 @@ jobs:
           node-version: 20
 
       # The checkers and their tests use only Node built-ins, so no install step.
-      - name: Test the docs checkers
-        run: node --test tests/docs/*.test.mjs
+      - name: Test the docs, environment, and migration checkers
+        run: node --test tests/docs/*.test.mjs tests/env/*.test.mjs tests/migrations/*.test.mjs
 
       - name: No terminal snapshots in the repository root
         run: node scripts/docs/check-root-artifacts.mjs
@@ -33,3 +33,12 @@ jobs:
 
       - name: Archived reports follow the archival policy
         run: node scripts/docs/check-archive.mjs
+
+      - name: Runbook steps link to commands or record manual evidence
+        run: node scripts/docs/check-runbooks.mjs
+
+      - name: Referenced environment variables are documented
+        run: node scripts/env/check-env-docs.mjs
+
+      - name: Migrations follow naming and transaction conventions
+        run: node scripts/migrations/check-migrations.mjs

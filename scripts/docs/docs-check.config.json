@@ -35,5 +35,8 @@
   "archive": {
     "dir": "docs/archive",
     "manifest": "docs/archive/README.md"
+  },
+  "runbooks": {
+    "files": ["docs/CONTRACT_DEPLOYMENT_RUNBOOK.md"]
   }
 }

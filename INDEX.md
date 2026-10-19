@@ -71,13 +71,16 @@ See detailed documentation:
 - [docs/AGENT_PLAN_COST_MONITORING.md](docs/AGENT_PLAN_COST_MONITORING.md) — Agent plan token and cost monitoring
 - [docs/BOT_IDENTITY_LINKING.md](docs/BOT_IDENTITY_LINKING.md) — Bot Identity Linking System
 - [docs/BRIDGE_ACCOUNTING_INTEGRATION_GUIDE.md](docs/BRIDGE_ACCOUNTING_INTEGRATION_GUIDE.md) — Bridge Accounting Integration Guide
+- [docs/CONTRACT_DEPLOYMENT_RUNBOOK.md](docs/CONTRACT_DEPLOYMENT_RUNBOOK.md) — Contract Deployment and Upgrade Runbook
 - [docs/CONTRACT_SECURITY_IMPLEMENTATION_SUMMARY.md](docs/CONTRACT_SECURITY_IMPLEMENTATION_SUMMARY.md) — Contract Security Implementation Summary
+- [docs/DATA_MIGRATIONS.md](docs/DATA_MIGRATIONS.md) — Data Migrations: Authoring and Rollback
 - [docs/DIFFERENTIAL_FUZZING.md](docs/DIFFERENTIAL_FUZZING.md) — Differential Fuzzing Between Soroban Contracts and Reference Models
 - [docs/DISCORD_MODERATION.md](docs/DISCORD_MODERATION.md) — Discord Scam Detection
 - [docs/DOCUMENTATION_ARCHIVAL_POLICY.md](docs/DOCUMENTATION_ARCHIVAL_POLICY.md) — Documentation Archival Policy
 - [docs/EGRESS_SECURITY.md](docs/EGRESS_SECURITY.md) — Default-Deny Egress Security
 - [docs/EMERGENCY_COORDINATION_IMPLEMENTATION.md](docs/EMERGENCY_COORDINATION_IMPLEMENTATION.md) — Emergency Coordination Implementation Guide
 - [docs/ENCRYPTION_KEY_ROTATION.md](docs/ENCRYPTION_KEY_ROTATION.md) — Encryption key rotation runbook
+- [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) — Environment Variables
 - [docs/EVENT_STANDARD.md](docs/EVENT_STANDARD.md) — Cross-Contract Event Standard
 - [docs/GENERATED_FILES_POLICY.md](docs/GENERATED_FILES_POLICY.md) — Generated Files Policy
 - [docs/MULTI_HOP_ARCHITECTURE.md](docs/MULTI_HOP_ARCHITECTURE.md) — Multi-Hop Trade Path Evaluation - Architecture

@@ -1,0 +1,26 @@
+{
+  "$comment": "Configuration for scripts/migrations/check-migrations.mjs. See docs/DATA_MIGRATIONS.md.",
+  "dirs": ["src/migrations", "docs/examples/migrations"],
+  "duplicateTimestampExemptions": [
+    {
+      "timestamp": "1772300000000",
+      "reason": "Applied before the naming check existed; renaming applied migrations would make TypeORM re-run them."
+    },
+    {
+      "timestamp": "1772500000000",
+      "reason": "Applied before the naming check existed; renaming applied migrations would make TypeORM re-run them."
+    },
+    {
+      "timestamp": "1773000000000",
+      "reason": "Applied before the naming check existed; renaming applied migrations would make TypeORM re-run them."
+    },
+    {
+      "timestamp": "1773100000000",
+      "reason": "Applied before the naming check existed; renaming applied migrations would make TypeORM re-run them."
+    },
+    {
+      "timestamp": "1774000000000",
+      "reason": "Applied before the naming check existed; renaming applied migrations would make TypeORM re-run them."
+    }
+  ]
+}

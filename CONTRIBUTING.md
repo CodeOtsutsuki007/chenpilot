@@ -7,13 +7,30 @@ Thank you for your interest in contributing to Chen Pilot! We're building the mo
 1.  **Fork the Project**: Create your own copy of the repository.
 2.  **Environment Setup**:
     - Install Node.js (18+).
-    - Enable the pinned pnpm version with `corepack enable` (or install it with `npm install -g pnpm@10.13.1`).
-    - Run `pnpm install --frozen-lockfile`.
-    - Copy `.env.example` to `.env` and configure your keys.
+    - Install `pnpm` (`npm install -g pnpm`).
+    - Run `pnpm install`.
+    - Copy `.env.example` to `.env` and configure your keys. [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) lists every variable, its owner, whether it is required, its default, and whether it is secret.
+    - Run `npm run preflight` (see [Local environment preflight](#local-environment-preflight)).
 3.  **Run Locally**:
-    - `npm run migration:run` (Requires a running PostgreSQL instance).
+    - `npm run migration:run` (Requires a running PostgreSQL instance; see [docs/DATA_MIGRATIONS.md](docs/DATA_MIGRATIONS.md)).
     - `npm run dev`.
 
+### Local environment preflight
+
+`npm run preflight` checks, before anything else fails later:
+
+| Check | Fails when |
+| --- | --- |
+| Node.js | The version is older than 18. |
+| Package manager | Neither pnpm nor npm is on `PATH` (warns when only npm is). |
+| Dependencies | `node_modules` is missing (warns when `package-lock.json` changed since the last install). |
+| Configuration | A required backend variable is missing or malformed, for example `JWT_SECRET` shorter than 32 characters (warns when a value is still the `.env.example` placeholder). |
+| PostgreSQL | `DB_HOST:DB_PORT` is unreachable, or the credentials or database in `DB_*` are rejected. |
+| Redis | `REDIS_HOST:REDIS_PORT` is unreachable, rejects `REDIS_PASSWORD`, or does not answer `PING`. |
+
+Each failure prints a fix, such as the `docker run` command that starts the missing service. It reads configuration the way the backend does (process environment, then `.env.local`, then `.env`) and never prints values, only variable names. It exits with status 1 when a check fails.
+
+Options: `--env-file <path>` (repeatable) reads other files instead of `.env.local` and `.env`, `--skip-services` skips the PostgreSQL and Redis checks, and `--timeout <ms>` sets the connection timeout (default 3000).
 ### Supported installation
 
 `pnpm install --frozen-lockfile` is the one supported clean install, for contributors and CI. It installs the workspace (the root, `packages/sdk`, and `packages/bot`) exactly as `pnpm-lock.yaml` records it, and fails instead of rewriting the lockfile when `package.json` and the lockfile disagree.
@@ -93,7 +110,10 @@ CI runs these checks on every push and pull request (`.github/workflows/docs-che
 | `node scripts/docs/check-doc-index.mjs` | `INDEX.md` has no duplicate section headings, no duplicate links to the same document, and no stale paths, and its generated Documentation Map is up to date. |
 | `npm run docs:index` | Regenerates the Documentation Map block in `INDEX.md` from the Markdown files under `docs/`. Run it after you add, move, or retitle a document under `docs/`. Edit the curated entries above the block by hand. |
 | `node scripts/docs/check-archive.mjs` | Archived reports follow the [documentation archival policy](docs/DOCUMENTATION_ARCHIVAL_POLICY.md). |
-| `npm run test:docs` | Unit tests for the checkers (`tests/docs/`). |
+| `node scripts/docs/check-runbooks.mjs` | Every step in the [contract deployment runbook](docs/CONTRACT_DEPLOYMENT_RUNBOOK.md) names an existing `npm run` script, file, or step, or is marked **Manual** with the evidence to record, and its source-checked facts (such as the upgrade delay) still match the code. |
+| `npm run env:check` | Every environment variable referenced in source is documented in `scripts/env/env-registry.json` (or explicitly exempted), every entry is still used, required variables appear in `.env.example`, and [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) is up to date. Run `npm run env:docs` to regenerate the table after editing the registry. |
+| `npm run migrations:check` | Migrations follow the naming and transaction rules in [docs/DATA_MIGRATIONS.md](docs/DATA_MIGRATIONS.md). |
+| `npm run test:docs` | Unit tests for the checkers (`tests/docs/`, `tests/env/`, `tests/migrations/`). |
 
 When an issue's implementation or delivery reports are complete, archive them as described in the [documentation archival policy](docs/DOCUMENTATION_ARCHIVAL_POLICY.md) instead of leaving them in the repository root.
 
