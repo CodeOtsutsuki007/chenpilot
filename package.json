@@ -1,7 +1,9 @@
 {
   "name": "chenpilot-experimental",
   "version": "1.0.0",
+  "private": true,
   "main": "dist/index.js",
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
@@ -18,7 +20,7 @@
     "migration:generate": "npm run typeorm migration:generate -- -d src/config/migrationDataSource.ts -p",
     "cleanup:tokens": "ts-node src/scripts/cleanupTokens.ts",
     "test:webhooks": "jest --runInBand --testPattern=webhookIdempotency.integration",
-    "smoke:clean-checkout": "npm ci && npm test -- --runInBand tests/integration/local_workflow_environment.integration.test.ts",
+    "smoke:clean-checkout": "node scripts/repo/verify-clean-install.mjs && jest --runInBand tests/integration/local_workflow_environment.integration.test.ts",
     "redteam": "jest tests/redteam --runInBand --json --outputFile=redteam-report.json",
     "redteam:check": "jest tests/redteam --runInBand",
     "build": "tsc",
@@ -31,6 +33,7 @@
     "contracts:build": "cargo build --manifest-path contracts/Cargo.toml --workspace --release --target wasm32-unknown-unknown",
     "contracts:manifest": "ts-node --transpile-only scripts/manifest-cli.ts",
     "release:artifact-check": "npm pack --dry-run && npm --prefix packages/sdk pack --dry-run",
+    "release:artifact-check": "node scripts/repo/check-package-manifests.mjs --require-entry-files",
     "release:gates": "npm run build:check && npm test -- --runInBand && npm run redteam:check && npm run build:sdk && npm run test:sdk && npm --prefix packages/sdk run test:conformance && npm run contracts:check && npm run contracts:test && npm run release:artifact-check",
     "prepare": "husky",
     "gen:docs": "node scripts/generateTooDocs.mjs",
@@ -39,6 +42,8 @@
     "docs:index": "node scripts/docs/check-doc-index.mjs --write",
     "docs:check": "node scripts/docs/check-root-artifacts.mjs && node scripts/docs/check-markdown-links.mjs && node scripts/docs/check-doc-index.mjs && node scripts/docs/check-archive.mjs && node scripts/docs/check-runbooks.mjs && node scripts/env/check-env-docs.mjs && node scripts/migrations/check-migrations.mjs",
     "test:docs": "node --test tests/docs/*.test.mjs tests/env/*.test.mjs tests/migrations/*.test.mjs",
+    "repo:check": "node scripts/repo/check-generated-files.mjs && node scripts/repo/check-dependency-aliases.mjs && node scripts/repo/check-install-workflow.mjs && node scripts/repo/check-package-manifests.mjs",
+    "test:repo": "node --test tests/repo/*.test.mjs",
     "preflight": "node scripts/env/preflight.mjs",
     "env:docs": "node scripts/env/check-env-docs.mjs --write",
     "env:check": "node scripts/env/check-env-docs.mjs",
@@ -52,6 +57,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gear5labs/chenpilot.git"
+  },
   "description": "",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.62.0",
@@ -79,7 +88,6 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "starknet": "^7.6.4",
-    "stellar-sdk": "^13.3.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",

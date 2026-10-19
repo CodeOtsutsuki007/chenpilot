@@ -8,7 +8,7 @@ Chen Pilot is a sophisticated AI-driven gateway that enables seamless interactio
 - **Node.js 18+** — required by TypeScript 5.7+, ESLint 9.x
 - **PostgreSQL 14+** — required by TypeORM 0.3.x with pg 8.x
 - **Redis 6+** — required for the distributed trade-locking system (`src/services/lock`); **not optional**
-- **pnpm 8+** — required for monorepo workspace management
+- **pnpm 10** — the only supported package manager. The exact version is pinned in `package.json` (`packageManager`); run `corepack enable` once and Corepack uses that version
 - Environment variables configured (see Configuration section)
 
 ---
@@ -25,8 +25,10 @@ cd chenpilot
 ### Install dependencies
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
+
+This is the one supported clean install, for contributors and CI. It installs exactly what `pnpm-lock.yaml` records and fails instead of rewriting the lockfile. Do not use `npm ci` or `npm install` for the workspace. To check that a clean install leaves the lockfile untouched, run `node scripts/repo/verify-clean-install.mjs`. See [CONTRIBUTING.md](CONTRIBUTING.md#-getting-started).
 
 ### Set up environment variables
 
@@ -114,7 +116,7 @@ This setup helps maintain consistent code style and a clean, readable git histor
 Git hooks are enabled automatically after installing dependencies:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 If hooks do not run for any reason, re-enable Husky manually:
@@ -234,7 +236,7 @@ The SDK package includes TypeDoc configuration for automated HTML API reference 
 ### Generate docs locally
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm --dir packages/sdk run docs
 ```
 
@@ -243,6 +245,8 @@ Generated output is written to:
 ```bash
 packages/sdk/docs
 ```
+
+The generated HTML is a build output and is ignored by Git. The hand-written Markdown guides in the same directory stay tracked. See the [generated files policy](docs/GENERATED_FILES_POLICY.md).
 
 ### Automated publishing on push to `main`
 

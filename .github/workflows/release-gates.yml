@@ -13,6 +13,7 @@ on:
       - "tests/integration/**"
       - "package.json"
       - "package-lock.json"
+      - "pnpm-lock.yaml"
       - ".npmrc"
       - ".github/workflows/release-gates.yml"
       - ".github/workflows/sbom-provenance.yml"
@@ -28,17 +29,22 @@ jobs:
         with:
           clean: true
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.13.1
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
 
-      - name: Install from lockfile
-        run: npm ci
-
-      - name: Run local workflow workspace smoke
-        run: npm test -- --runInBand tests/integration/local_workflow_environment.integration.test.ts
+      # The supported clean install (CONTRIBUTING.md "Getting Started"):
+      # `pnpm install --frozen-lockfile`, failing if it changes the lockfile
+      # or any tracked file, then the workspace smoke test.
+      - name: Install from lockfile and run local workflow workspace smoke
+        run: pnpm run smoke:clean-checkout
 
   backend-health:
     name: Backend compiler and tests

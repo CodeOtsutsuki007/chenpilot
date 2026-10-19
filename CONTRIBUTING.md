@@ -31,6 +31,14 @@ Thank you for your interest in contributing to Chen Pilot! We're building the mo
 Each failure prints a fix, such as the `docker run` command that starts the missing service. It reads configuration the way the backend does (process environment, then `.env.local`, then `.env`) and never prints values, only variable names. It exits with status 1 when a check fails.
 
 Options: `--env-file <path>` (repeatable) reads other files instead of `.env.local` and `.env`, `--skip-services` skips the PostgreSQL and Redis checks, and `--timeout <ms>` sets the connection timeout (default 3000).
+### Supported installation
+
+`pnpm install --frozen-lockfile` is the one supported clean install, for contributors and CI. It installs the workspace (the root, `packages/sdk`, and `packages/bot`) exactly as `pnpm-lock.yaml` records it, and fails instead of rewriting the lockfile when `package.json` and the lockfile disagree.
+
+- The pnpm version is pinned by `packageManager` in `package.json`. CI steps that use `pnpm/action-setup` pin the same version.
+- Do not use `npm ci` or `npm install` for the workspace. npm does not read `pnpm-lock.yaml`. Some older CI jobs still install with npm from `package-lock.json`, and that lockfile is kept only for them.
+- If you change dependencies, run `pnpm install` (without `--frozen-lockfile`) and commit the updated `pnpm-lock.yaml` with the `package.json` change.
+- `pnpm run smoke:clean-checkout` runs `node scripts/repo/verify-clean-install.mjs`, which runs the supported install and fails if it changed the lockfile or any tracked file, and then runs the workspace smoke test. The `clean-checkout-smoke` job in `.github/workflows/release-gates.yml` runs it on a fresh checkout.
 
 ## 🛠️ How to Contribute
 
@@ -47,7 +55,7 @@ New to the project? Here's a concrete walkthrough for your first contribution.
 Before picking up an issue, confirm your local environment works:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 npm test                  # runs Jest — all tests should pass
 npm run build:check       # runs tsc --noEmit — no type errors
 ```
@@ -108,6 +116,22 @@ CI runs these checks on every push and pull request (`.github/workflows/docs-che
 | `npm run test:docs` | Unit tests for the checkers (`tests/docs/`, `tests/env/`, `tests/migrations/`). |
 
 When an issue's implementation or delivery reports are complete, archive them as described in the [documentation archival policy](docs/DOCUMENTATION_ARCHIVAL_POLICY.md) instead of leaving them in the repository root.
+
+### Repository checks
+
+CI runs these checks on every push and pull request (`.github/workflows/repository-checks.yml`). They use only Node built-ins and npm, so they need no install. Run them locally before you push:
+
+| Command | What it checks |
+| --- | --- |
+| `npm run repo:check` | Runs all of the checks below except the clean install. |
+| `node scripts/repo/check-generated-files.mjs` | Only allowlisted generated files are tracked, no build output is tracked, no tracked file is matched by `.gitignore`, and every build output is ignored. See the [generated files policy](docs/GENERATED_FILES_POLICY.md). |
+| `node scripts/repo/check-dependency-aliases.mjs` | For packages published under two names (`stellar-sdk` and `@stellar/stellar-sdk`), each workspace declares the name it imports and imports the name it declares, and declares only one of them. On success it prints the per-workspace inventory. |
+| `node scripts/repo/check-package-manifests.mjs` | Packs the root and `packages/sdk` with `npm pack` and validates the packed `package.json`: `name`, `version`, `license`, `repository.type`, `repository.url` (this repository), `repository.directory` (the package's own directory), and `main`. Entry points (`main`, `types`, `exports`, `bin`, ...) must stay inside the package, and a built entry point must be in the tarball. Each failure names the manifest, the tarball, and the exact field, for example `packages/sdk/package.json (packed chen-pilot-sdk-core-0.1.0.tgz): "repository.url" is missing or empty`. `npm run release:artifact-check` adds `--require-entry-files`, so every entry point of a publishable package must be built and packed. |
+| `node scripts/repo/check-install-workflow.mjs` | `packageManager` pins pnpm, CI pins the same pnpm version, README.md and CONTRIBUTING.md show only `pnpm install --frozen-lockfile`, and no root script installs with npm. |
+| `node scripts/repo/verify-clean-install.mjs` | Runs `pnpm install --frozen-lockfile` and fails if it changed the lockfile or any tracked file. Run it from a clean checkout. |
+| `npm run test:repo` | Unit tests for the checkers (`tests/repo/`). |
+
+The root `package.json` is `"private": true`. The root is the deployable application, not a published package, so only its metadata is checked, not its tarball contents. `packages/sdk` is the published package.
 
 ### Configuration file convention
 

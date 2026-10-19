@@ -14,7 +14,7 @@ import {
 } from "../memoUtils";
 
 // Mock Stellar SDK
-jest.mock("stellar-sdk", () => ({
+jest.mock("@stellar/stellar-sdk", () => ({
   Memo: {
     hash: jest.fn((buffer) => ({
       type: "hash",

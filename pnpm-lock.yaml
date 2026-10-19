@@ -83,9 +83,6 @@ importers:
       starknet:
         specifier: ^7.6.4
         version: 7.6.4
-      stellar-sdk:
-        specifier: ^13.3.0
-        version: 13.3.0
       swagger-jsdoc:
         specifier: ^6.2.8
         version: 6.2.8(openapi-types@12.1.3)

@@ -12,6 +12,21 @@ logs/
 contracts/target/
 *.tsbuildinfo
 *.log
+*.tgz
+
+# TypeDoc HTML output. packages/sdk/docs/ also holds authored Markdown, so
+# ignore only the generated files, never the whole directory.
+# See docs/GENERATED_FILES_POLICY.md.
+/packages/sdk/docs/*.html
+/packages/sdk/docs/.nojekyll
+/packages/sdk/docs/assets/
+/packages/sdk/docs/classes/
+/packages/sdk/docs/enums/
+/packages/sdk/docs/functions/
+/packages/sdk/docs/interfaces/
+/packages/sdk/docs/modules/
+/packages/sdk/docs/types/
+/packages/sdk/docs/variables/
 .DS_Store
 
 # Local diagnostics and terminal captures (command output saved for debugging).
