@@ -208,6 +208,93 @@ export function formatAmount(
   return result;
 }
 
+/** Parses a localized amount into a decimal string without rounding. */
+export function parseLocalizedAmount(amount: string, locale: string): string {
+  const input = amount.trim();
+  if (!input) {
+    throw new Error("Invalid amount");
+  }
+
+  const formatter = new Intl.NumberFormat(locale, { useGrouping: true });
+  const formatParts = formatter.formatToParts(123456789012345.6);
+  const decimalSeparator = formatParts.find((part) => part.type === "decimal")?.value;
+  const groupSeparator = formatParts.find((part) => part.type === "group")?.value;
+  const groupSizes = formatter
+    .formatToParts(123456789012345)
+    .filter((part) => part.type === "integer")
+    .map((part) => part.value.length);
+
+  if (!decimalSeparator || !groupSeparator || groupSizes.length < 2) {
+    throw new Error(`Unsupported amount locale: ${locale}`);
+  }
+
+  const digitFormatter = new Intl.NumberFormat(locale, {
+    useGrouping: false,
+    maximumFractionDigits: 0,
+  });
+  const localizedDigits = new Map<string, string>();
+  for (let digit = 0; digit <= 9; digit++) {
+    const localizedDigit = digitFormatter
+      .formatToParts(digit)
+      .filter((part) => part.type === "integer")
+      .map((part) => part.value)
+      .join("");
+    localizedDigits.set(localizedDigit, String(digit));
+  }
+
+  const normalizeDigits = (value: string): string => {
+    let normalized = "";
+    for (let index = 0; index < value.length;) {
+      const match = Array.from(localizedDigits.entries()).find(([digit]) =>
+        value.startsWith(digit, index)
+      );
+      if (!match) {
+        throw new Error("Invalid amount");
+      }
+      normalized += match[1];
+      index += match[0].length;
+    }
+    return normalized;
+  };
+
+  const decimalParts = input.split(decimalSeparator);
+  if (decimalParts.length > 2) {
+    throw new Error("Invalid amount");
+  }
+
+  const integerParts = decimalParts[0].split(groupSeparator);
+  const normalizedIntegerParts = integerParts.map(normalizeDigits);
+  if (normalizedIntegerParts.length > 1) {
+    const primaryGroupSize = groupSizes[groupSizes.length - 1];
+    const secondaryGroupSize = groupSizes[groupSizes.length - 2];
+    const firstGroupSize = normalizedIntegerParts[0].length;
+    if (
+      normalizedIntegerParts.some((part) => part.length === 0) ||
+      normalizedIntegerParts[normalizedIntegerParts.length - 1].length !== primaryGroupSize ||
+      normalizedIntegerParts.slice(1, -1).some((part) => part.length !== secondaryGroupSize) ||
+      firstGroupSize < 1 ||
+      firstGroupSize > secondaryGroupSize
+    ) {
+      throw new Error("Invalid amount grouping");
+    }
+  }
+
+  const integer = normalizedIntegerParts.join("");
+  if (!integer) {
+    throw new Error("Invalid amount");
+  }
+
+  if (decimalParts.length === 1) {
+    return integer;
+  }
+
+  const fraction = normalizeDigits(decimalParts[1]);
+  if (!fraction) {
+    throw new Error("Invalid amount");
+  }
+  return `${integer}.${fraction}`;
+}
+
 /**
  * Detects Unicode homoglyphs in a string (typically addresses/issuers)
  *
@@ -614,6 +701,7 @@ export function formatAddressWithChecksum(
 
 export default {
   formatAmount,
+  parseLocalizedAmount,
   formatAddress,
   formatIssuer,
   formatPercentage,

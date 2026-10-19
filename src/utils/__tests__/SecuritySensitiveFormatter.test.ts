@@ -6,6 +6,7 @@
 
 import {
   formatAmount,
+  parseLocalizedAmount,
   formatAddress,
   formatIssuer,
   formatPercentage,
@@ -81,6 +82,24 @@ describe("SecuritySensitiveFormatter - Unit Tests", () => {
     it("should throw on non-finite values", () => {
       expect(() => formatAmount(Infinity)).toThrow();
       expect(() => formatAmount(NaN)).toThrow();
+    });
+  });
+
+  describe("parseLocalizedAmount", () => {
+    it("parses locale-specific decimal and grouping separators", () => {
+      expect(parseLocalizedAmount("1,234.50", "en-US")).toBe("1234.50");
+      expect(parseLocalizedAmount("1.234,50", "de-DE")).toBe("1234.50");
+      expect(parseLocalizedAmount("1\u202f234,50", "fr-FR")).toBe("1234.50");
+    });
+
+    it("preserves decimal precision without floating-point formatting", () => {
+      expect(parseLocalizedAmount("0,000000000000000001", "de-DE")).toBe(
+        "0.000000000000000001"
+      );
+    });
+
+    it("rejects malformed locale grouping", () => {
+      expect(() => parseLocalizedAmount("12,34.50", "en-US")).toThrow();
     });
   });
 
