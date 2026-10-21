@@ -617,14 +617,18 @@ impl CoreVaultContract {
     /// - The legacy admin is the current trust anchor until UnifiedAuth is wired.
     /// - The auth payload binds vault address, function symbol, arguments, and a
     ///   per-admin nonce, preventing confused-deputy and replay attacks.
+    /// - The nonce is advanced with checked arithmetic and only after a successful
+    ///   authorization, so wraparound and failed auths cannot mutate storage.
     fn require_legacy_admin(env: &Env, function: Symbol, args: Vec<Val>) -> Address {
         let admin: Address =
             unwrap_or_fail(env, env.storage().instance().get(&DataKey::Admin), FailureReason::StorageValueMissing);
         let nonce: u32 = env.storage().instance()
             .get(&DataKey::AuthNonce(admin.clone()))
             .unwrap_or(0);
-        env.storage().instance()
-            .set(&DataKey::AuthNonce(admin.clone()), &(nonce + 1));
+        let next = match nonce.checked_add(1) {
+            Some(value) => value,
+            None => fail(env, FailureReason::ArithmeticError),
+        };
 
         let mut auth: Vec<Val> = Vec::new(env);
         auth.push_back(env.current_contract_address().into_val(env));
@@ -635,6 +639,8 @@ impl CoreVaultContract {
         auth.push_back(nonce.into_val(env));
 
         admin.require_auth_for_args(&auth);
+        env.storage().instance()
+            .set(&DataKey::AuthNonce(admin.clone()), &next);
         admin
     }
 
@@ -678,9 +684,23 @@ impl CoreVaultContract {
     pub fn get_unified_auth(env: Env) -> Option<Address> {
         env.storage().instance().get(&DataKey::UnifiedAuth)
     }
+
+    /// Current legacy-admin authorization nonce. Used by tests and operators
+    /// to inspect wraparound proximity; the next successful auth stores nonce+1.
+    pub fn auth_nonce(env: Env, admin: Address) -> u32 {
+        env.storage().instance().get(&DataKey::AuthNonce(admin)).unwrap_or(0)
+    }
 }
 
 mod test;
 mod test_pause;
 #[cfg(test)]
 mod test_diff_fuzz;
+#[cfg(test)]
+mod test_invariants;
+#[cfg(test)]
+mod test_property;
+#[cfg(test)]
+mod test_roles;
+#[cfg(test)]
+mod test_nonce;

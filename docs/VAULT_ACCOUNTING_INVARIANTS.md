@@ -11,6 +11,10 @@
 - `Admin` - Admin address
 - `VaultToken` - Token address
 
+### Share conversion
+
+`core_vault` uses 1:1 share accounting: `shares = tokens` with conservation tolerance `0`. Integer amounts produce no rounding dust across repeated deposit/withdrawal sequences. Native XLM is never transferred; only `VaultToken` balances move.
+
 ### Accounting Flows
 
 #### Deposit Flow

@@ -230,17 +230,25 @@ The circuit breaker operates automatically based on price violations:
 
 ### Function Authorization Matrix
 
-| Function | Caller Requirement | Auth Check | Description |
-|----------|------------------|------------|-------------|
-| `initialize` | Public (once) | None | Initialize vault |
-| `update_config` | Admin | `admin.require_auth()` | Update configuration |
-| `deposit` | Public | `caller.require_auth()` | Deposit collateral |
-| `withdraw` | Owner | `owner.require_auth()` | Withdraw collateral |
-| `borrow` | Public | `caller.require_auth()` + collateral check | Borrow against collateral |
-| `repay` | Public | `caller.require_auth()` | Repay debt |
-| `liquidate` | Public | `caller.require_auth()` + liquidation check | Liquidate position |
-| `get_position` | Public | None | Get user position |
-| `get_config` | Public | None | Get vault config |
+Privileged methods use `require_legacy_admin` (VaultAdmin / EmergencyAdmin / UpgradeAdmin via UnifiedAuth, currently the legacy admin). Pause blocks `set_backend_status` and `propose_upgrade`. Withdrawal remains available while paused.
+
+| Function | Required role | Pause behavior | Auth Check | Description |
+|----------|---------------|----------------|------------|-------------|
+| `init` | Public (once) | n/a | None | Initialize vault, token, UnifiedAuth |
+| `set_backend_status` | VaultAdmin or EmergencyAdmin | Rejected while paused | `require_vault_or_emergency_admin` | Toggle backend online/offline |
+| `pause` | VaultAdmin or EmergencyAdmin | Sets paused | `require_vault_or_emergency_admin` | Block new deposits |
+| `unpause` | VaultAdmin or EmergencyAdmin | Clears paused | `require_vault_or_emergency_admin` | Re-enable deposits |
+| `recovery` | VaultAdmin or EmergencyAdmin | Allowed | `require_vault_or_emergency_admin` | Cancel a pending force-exit |
+| `propose_upgrade` | UpgradeAdmin | Rejected while paused | `require_upgrade_admin` | Start upgrade timelock |
+| `cancel_upgrade` | UpgradeAdmin | Allowed | `require_upgrade_admin` | Abort pending upgrade |
+| `apply_upgrade` | Public after timelock | n/a | None after unlock | Deploy pending WASM |
+| `transfer_admin` | Current admin | Allowed | `require_legacy_admin` | Rotate legacy admin |
+| `set_unified_auth` | Current admin | Allowed | `require_legacy_admin` | Set UnifiedAuth contract |
+| `deposit` | Owner | Rejected while paused | `user.require_auth()` | Deposit vault token |
+| `withdrawal` | Owner | Allowed | `user.require_auth()` | Withdraw vault token |
+| `force_exit_request` | Owner | Allowed | `user.require_auth()` | Start force-exit when backend offline |
+| `force_exit_complete` | Owner | Allowed | `user.require_auth()` | Claim after challenge period |
+| `get_deposit` / `get_force_exit` / `is_paused` / `is_backend_online` / `auth_nonce` | Public | n/a | None | Read-only |
 
 ### Admin Permissions
 

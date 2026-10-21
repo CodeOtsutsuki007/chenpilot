@@ -22,6 +22,14 @@ This document describes the property-based/invariant testing approach introduced
 - **Circuit breaker reset**: After `circuit_breaker_window_seconds` passes, `triggered` is `false`.
 - **Stale oracle rejection**: Oracle data older than `max_oracle_staleness_seconds` is rejected.
 
+### Core Vault (`contracts/core_vault/src/test_property.rs`, `test_invariants.rs`, `test_roles.rs`, `test_nonce.rs`)
+
+- **Share conservation**: generated deposit/withdrawal sequences keep `sum(user deposits) == vault token balance` with tolerance 0.
+- **Rounding dust**: identically 0 over long 1:1 sequences; over-withdrawal is a failure case that must not mutate balances.
+- **Balance conservation**: token (and unused native stand-in) balances are checked before/after deposit, withdrawal, pause, and emergency force-exit.
+- **Role matrix**: every privileged entry point is tested with an authorized admin and an unauthorized caller, including pause behavior.
+- **Nonce overflow**: `u32::MAX` fails closed before wraparound; failed authorization does not increment the nonce.
+
 ### Liquidity Vault (`contracts/liquidity_vault/src/test_property.rs`)
 
 - **Monotonic deviation**: Deviation in basis points increases monotonically as market price moves away from intent.
