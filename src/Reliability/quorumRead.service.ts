@@ -58,14 +58,19 @@ function normalizeValue<T>(value: T): string {
 
 /**
  * Group responses by their normalized value and count agreements.
- * The canonical value stored is the first response's raw value for each group.
+ *
+ * The canonical value kept for each group is taken from the response with the
+ * highest `timestamp` in that group (i.e. the most recent observation).  This
+ * ensures that when concurrent provider responses arrive out of order, an older
+ * observation can never displace a newer one as the representative value
+ * returned to the caller.
  */
 function groupByValue<T>(
   responses: ProviderResponse<T>[]
-): Map<string, { value: T; count: number; providers: string[] }> {
+): Map<string, { value: T; count: number; providers: string[]; newestTimestamp: number }> {
   const groups = new Map<
     string,
-    { value: T; count: number; providers: string[] }
+    { value: T; count: number; providers: string[]; newestTimestamp: number }
   >();
 
   for (const response of responses) {
@@ -76,11 +81,18 @@ function groupByValue<T>(
     if (existing) {
       existing.count++;
       existing.providers.push(response.providerId);
+      // Keep the value from the newest response so older observations never
+      // replace a more recent one that has already been recorded.
+      if (response.timestamp > existing.newestTimestamp) {
+        existing.value = response.value;
+        existing.newestTimestamp = response.timestamp;
+      }
     } else {
       groups.set(normalized, {
         value: response.value,
         count: 1,
         providers: [response.providerId],
+        newestTimestamp: response.timestamp,
       });
     }
   }
@@ -245,20 +257,33 @@ export class QuorumReadService {
     // Group responses by normalized value
     const groups = groupByValue(validResponses);
 
-    // Find the majority group
-    let majorityGroup: { value: T; count: number; providers: string[] } | null =
+    // Find the majority group.  When two groups have the same vote count,
+    // prefer the one whose newest response timestamp is higher — this means
+    // a more-recent observation takes precedence and an older one cannot
+    // displace it even if it arrives late.
+    let majorityGroup: { value: T; count: number; providers: string[]; newestTimestamp: number } | null =
       null;
 
     for (const group of groups.values()) {
-      if (!majorityGroup || group.count > majorityGroup.count) {
+      if (!majorityGroup) {
+        majorityGroup = group;
+      } else if (group.count > majorityGroup.count) {
+        majorityGroup = group;
+      } else if (
+        group.count === majorityGroup.count &&
+        group.newestTimestamp > majorityGroup.newestTimestamp
+      ) {
+        // Equal vote count: the group with the fresher data wins.
         majorityGroup = group;
       }
     }
 
-    // If multiple groups tie, fail closed on divergence
+    // If multiple groups are still tied after timestamp comparison, fail closed.
     if (majorityGroup) {
       const tiedGroups = Array.from(groups.values()).filter(
-        (g) => g.count === majorityGroup!.count
+        (g) =>
+          g.count === majorityGroup!.count &&
+          g.newestTimestamp === majorityGroup!.newestTimestamp
       );
       if (tiedGroups.length > 1) {
         const error = `Multiple values tied for majority: ${tiedGroups.length} groups with ${majorityGroup.count} votes each`;
