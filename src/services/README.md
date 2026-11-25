@@ -33,9 +33,10 @@ This module implements a Redis-backed caching layer for Stellar asset prices, re
 ### Caching Strategy
 
 - **Default TTL**: 60 seconds (configurable)
-- **Cache Key Format**: `price:{FROM_ASSET}:{TO_ASSET}`
+- **Cache Key Format**: `price:{FROM_ASSET}:{TO_ASSET}` (or `price:{FROM}:{ISSUER}:{TO}:{ISSUER}` when issuer identity is supplied)
 - **Case-Insensitive**: Asset symbols normalized to uppercase
 - **Automatic Expiration**: Redis handles TTL automatically
+- **Concurrent Write Ordering**: `setPrice` uses an atomic Redis Lua script (`SET IF NEWER`) that compares the incoming observation's `timestamp` against the currently cached entry before writing. An older observation returned by a slow concurrent provider fetch can never overwrite a more recent price already in the cache. The Lua script returns `1` when the write proceeds and `0` when it is skipped because a newer entry exists.
 
 ### Performance Benefits
 
@@ -165,9 +166,9 @@ const result = await swapTool.execute(
 
 Retrieve cached price for asset pair.
 
-#### `setPrice(fromAsset: string, toAsset: string, price: number, source: string, ttl?: number): Promise<void>`
+#### `setPrice(fromAsset: string, toAsset: string, price: number, source: string, ttl?: number, identity?: PriceAssetIdentity): Promise<void>`
 
-Cache a price with optional TTL.
+Cache a price with optional TTL. Uses an atomic `SET IF NEWER` Lua script: if a cached entry already exists with an equal or higher `timestamp`, the write is silently skipped. This prevents a slow concurrent fetch from overwriting a fresher observation that another concurrent fetch already committed.
 
 #### `getPrices(pairs: Array<{from: string, to: string}>): Promise<Map<string, PriceData | null>>`
 

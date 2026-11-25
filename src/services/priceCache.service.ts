@@ -113,14 +113,45 @@ export class PriceCacheService {
 
     try {
       const key = this.getCacheKey(fromAsset, toAsset, identity);
+      const now = Date.now();
       const priceData: PriceData = {
         price,
-        timestamp: Date.now(),
+        timestamp: now,
         source,
       };
+      const serialized = JSON.stringify(priceData);
 
       const redis = getRedisClient();
-      await redis.setex(key, ttl, JSON.stringify(priceData));
+
+      /**
+       * Atomic "set if newer" using a Lua script.
+       *
+       * The script reads the current cached entry, compares its `timestamp`
+       * field against the incoming one, and only overwrites when the new
+       * observation is strictly newer (or when nothing is cached yet).
+       * This prevents a slow concurrent fetch from replacing fresher data
+       * that another concurrent fetch already committed.
+       *
+       * KEYS[1]  — cache key
+       * ARGV[1]  — serialised new PriceData
+       * ARGV[2]  — TTL in seconds
+       * ARGV[3]  — new timestamp (ms) as a string for numeric comparison
+       */
+      const lua = `
+        local existing = redis.call('GET', KEYS[1])
+        if existing then
+          local ok, parsed = pcall(cjson.decode, existing)
+          if ok and parsed.timestamp and tonumber(parsed.timestamp) >= tonumber(ARGV[3]) then
+            return 0
+          end
+        end
+        redis.call('SETEX', KEYS[1], ARGV[2], ARGV[1])
+        return 1
+      `;
+
+      await (redis as unknown as {
+        eval(script: string, numkeys: number, ...args: string[]): Promise<number>;
+      }).eval(lua, 1, key, serialized, String(ttl), String(now));
 
       logger.debug("Cached price", {
         pair: `${fromAsset}/${toAsset}`,

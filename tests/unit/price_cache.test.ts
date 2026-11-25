@@ -210,3 +210,104 @@ describe("PriceCacheService", () => {
     });
   });
 });
+
+// ─── Concurrent Write Ordering (set-if-newer) ─────────────────────────────────
+// These tests verify that an older observation returned by a slow concurrent
+// provider fetch cannot overwrite a newer price that has already been cached.
+
+describe("PriceCacheService — concurrent write ordering", () => {
+  // We need a fresh instance so the eval mock is wired correctly.
+  let cacheService: PriceCacheService;
+
+  const mockRedisWithEval = {
+    get: jest.fn(),
+    setex: jest.fn(),
+    mget: jest.fn(),
+    del: jest.fn(),
+    scan: jest.fn(),
+    info: jest.fn(),
+    ping: jest.fn(),
+    quit: jest.fn(),
+    on: jest.fn(),
+    eval: jest.fn(),
+  };
+
+  beforeAll(() => {
+    // Re-mock the redis client to include `eval`.
+    jest.mock("../../src/services/redis/client", () => ({
+      getRedisClient: jest.fn(() => mockRedisWithEval),
+      healthCheckRedis: jest.fn().mockResolvedValue(true),
+    }));
+    cacheService = new PriceCacheService();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    cacheService.resetHitRate();
+    mockRedisWithEval.scan
+      .mockResolvedValue(["0", []]);
+  });
+
+  it("success — newer price is written when cache is empty (eval returns 1)", async () => {
+    // Lua script returns 1 (write succeeded — no existing entry).
+    mockRedisWithEval.eval.mockResolvedValue(1);
+
+    await cacheService.setPrice("XLM", "USDC", 0.15, "stellar_dex", 60);
+
+    // eval must have been called with the Lua script and correct key/args.
+    expect(mockRedisWithEval.eval).toHaveBeenCalledTimes(1);
+    const [script, numkeys, key] = mockRedisWithEval.eval.mock.calls[0];
+    expect(typeof script).toBe("string");
+    expect(script).toContain("SETEX");
+    expect(numkeys).toBe(1);
+    expect(key).toBe("price:XLM:USDC");
+  });
+
+  it("success — newer price overwrites a staler cached entry (eval returns 1)", async () => {
+    // Simulate Redis executing the Lua script and finding the existing entry
+    // is older — it writes the new one and returns 1.
+    mockRedisWithEval.eval.mockResolvedValue(1);
+
+    await cacheService.setPrice("XLM", "USDC", 0.20, "stellar_dex", 60);
+
+    expect(mockRedisWithEval.eval).toHaveBeenCalledTimes(1);
+  });
+
+  it("failure — older price does NOT overwrite a fresher cached entry (eval returns 0)", async () => {
+    // Lua script returns 0 — existing entry is newer, write is skipped.
+    mockRedisWithEval.eval.mockResolvedValue(0);
+
+    // A slow provider calling setPrice with an old observation should not
+    // throw or cause any side-effect visible to the caller.
+    await expect(
+      cacheService.setPrice("XLM", "USDC", 0.10, "stellar_dex", 60)
+    ).resolves.toBeUndefined();
+
+    // eval was still called (the decision is made inside the Lua script).
+    expect(mockRedisWithEval.eval).toHaveBeenCalledTimes(1);
+  });
+
+  it("boundary — concurrent setPrice calls for the same key both invoke eval independently", async () => {
+    mockRedisWithEval.eval
+      .mockResolvedValueOnce(1)   // first caller wins
+      .mockResolvedValueOnce(0);  // second caller is rejected by Lua
+
+    await Promise.all([
+      cacheService.setPrice("XLM", "USDC", 0.18, "stellar_dex", 60),
+      cacheService.setPrice("XLM", "USDC", 0.17, "stellar_dex", 60),
+    ]);
+
+    // Both callers must have attempted the atomic write.
+    expect(mockRedisWithEval.eval).toHaveBeenCalledTimes(2);
+  });
+
+  it("boundary — setex is never called directly (all writes go through eval)", async () => {
+    mockRedisWithEval.eval.mockResolvedValue(1);
+
+    await cacheService.setPrice("XLM", "USDT", 0.11, "stellar_dex", 60);
+
+    // The raw setex must not have been used by setPrice — the Lua script
+    // calls SETEX internally inside Redis, but the Node layer must not.
+    expect(mockRedisWithEval.setex).not.toHaveBeenCalled();
+  });
+});

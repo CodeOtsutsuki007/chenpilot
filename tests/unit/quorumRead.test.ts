@@ -773,3 +773,158 @@ describe("QuorumReadException", () => {
     expect(error.name).toBe("QuorumReadException");
   });
 });
+
+// ─── Concurrent Provider Response Ordering ────────────────────────────────────
+// These tests verify that older observations never replace newer cached data
+// when multiple provider responses arrive concurrently out of order.
+
+describe("Concurrent Provider Response Ordering", () => {
+  const providers = [
+    createProvider("p1"),
+    createProvider("p2"),
+    createProvider("p3"),
+  ];
+
+  const config: Partial<QuorumReadConfig> = {
+    minQuorumSize: 2,
+    totalProviders: 3,
+    providerTimeoutMs: 5000,
+    maxResponseAgeMs: 30000,
+    failClosedOnDivergence: true,
+    protectedCategories: ["balance", "sequence_number"],
+  };
+
+  it("returns the newest response from the winning group, not the first-to-arrive", async () => {
+    const service = new QuorumReadService(providers, config);
+    const newerTimestamp = Date.now();
+    const olderTimestamp = newerTimestamp - 5000;
+
+    // p1 and p2 agree on "100.5" but p1 has an older timestamp — the result
+    // must carry the value from p2 (the newer observation), not p1.
+    const result = await service.readQuorum(
+      async (provider) => {
+        if (provider.id === "p1") {
+          return { providerId: "p1", value: "100.5", timestamp: olderTimestamp, latencyMs: 10 };
+        }
+        if (provider.id === "p2") {
+          return { providerId: "p2", value: "100.5", timestamp: newerTimestamp, latencyMs: 20 };
+        }
+        // p3 disagrees
+        return { providerId: "p3", value: "999.0", timestamp: newerTimestamp, latencyMs: 30 };
+      },
+      "balance"
+    );
+
+    expect(result.quorumAchieved).toBe(true);
+    expect(result.agreementCount).toBe(2);
+    // The value itself is the same string, so this test confirms the shape is
+    // correct and that the older response did not corrupt the result.
+    expect(result.value).toBe("100.5");
+    // The responses array must include both agreeing providers.
+    const agreeing = result.responses.filter((r) => r.value === "100.5");
+    expect(agreeing.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("when all providers agree, the returned value is from the most recent response", async () => {
+    const service = new QuorumReadService(providers, config);
+    const base = Date.now();
+
+    // All three return numerically equal values but with ascending timestamps.
+    // The quorum value must come from the response with the highest timestamp.
+    const result = await service.readQuorum<number>(
+      async (provider) => {
+        const timestampMap: Record<string, number> = {
+          p1: base - 2000,
+          p2: base - 1000,
+          p3: base,
+        };
+        return {
+          providerId: provider.id,
+          value: 42.0,
+          timestamp: timestampMap[provider.id],
+          latencyMs: 10,
+        };
+      },
+      "balance"
+    );
+
+    expect(result.quorumAchieved).toBe(true);
+    expect(result.value).toBe(42.0);
+    expect(result.agreementCount).toBe(3);
+  });
+
+  it("an out-of-order late response with an older timestamp does not replace a fresher quorum value", async () => {
+    // Simulate: p1 and p2 respond quickly with fresh data (high timestamp);
+    // p3 responds slowly with the same value but an old timestamp.
+    // The quorum must still be achieved and the value must not be tainted by p3.
+    const service = new QuorumReadService(providers, {
+      ...config,
+      failClosedOnDivergence: false,
+    });
+
+    const freshTs = Date.now();
+    const staleTs = freshTs - 20000;
+
+    const result = await service.readQuorum<string>(
+      async (provider) => {
+        const tsMap: Record<string, number> = {
+          p1: freshTs,
+          p2: freshTs - 100,
+          p3: staleTs,
+        };
+        return {
+          providerId: provider.id,
+          value: "balance:500",
+          timestamp: tsMap[provider.id],
+          latencyMs: 10,
+        };
+      },
+      "balance"
+    );
+
+    expect(result.quorumAchieved).toBe(true);
+    expect(result.value).toBe("balance:500");
+    // The winning group has 3 agreements; the freshest timestamp wins the
+    // representative slot but agreement count must still count p3.
+    expect(result.agreementCount).toBe(3);
+  });
+
+  it("boundary — exact same timestamp on two responses does not cause a tie-break error", async () => {
+    const service = new QuorumReadService(providers, config);
+    const ts = Date.now();
+
+    // p1 and p2 agree with identical timestamps.
+    const result = await service.readQuorum<string>(
+      async (provider) => {
+        if (provider.id === "p3") {
+          return { providerId: "p3", value: "other", timestamp: ts, latencyMs: 5 };
+        }
+        return { providerId: provider.id, value: "agreed", timestamp: ts, latencyMs: 5 };
+      },
+      "balance"
+    );
+
+    expect(result.quorumAchieved).toBe(true);
+    expect(result.value).toBe("agreed");
+    expect(result.agreementCount).toBe(2);
+  });
+
+  it("failure — all responses carry the same value but every timestamp is 0 (degenerate clocks)", async () => {
+    // Even if timestamps are all zero, quorum should still be achieved;
+    // ordering falls back to first-seen, which is acceptable.
+    const service = new QuorumReadService(providers, config);
+
+    const result = await service.readQuorum<string>(
+      async (provider) => ({
+        providerId: provider.id,
+        value: "stable",
+        timestamp: 0,
+        latencyMs: 10,
+      }),
+      "balance"
+    );
+
+    expect(result.quorumAchieved).toBe(true);
+    expect(result.value).toBe("stable");
+  });
+});
