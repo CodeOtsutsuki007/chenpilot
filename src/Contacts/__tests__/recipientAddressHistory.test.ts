@@ -28,7 +28,12 @@ const transfer = (revisionId: string, transferId = "tx-1") => ({
   asset: "XLM",
 });
 
+import { auditLogService } from "../../AuditLog/auditLog.service";
+
 describe("recipient address change history (#1104)", () => {
+  beforeEach(() => {
+    jest.spyOn(auditLogService, "log").mockImplementation(async () => ({ id: "mock-id" } as any));
+  });
   it("records each address version with actor, time and verification status", () => {
     const { svc, v1 } = setup();
     const v2 = svc.updateRecipient({ recipientId: "rcp-1", address: ADDR_B, network: "testnet", actor: "user-2" }, T1);
@@ -68,6 +73,23 @@ describe("recipient address change history (#1104)", () => {
       supersededAt: T1.toISOString(),
     });
     expect(current).toMatchObject({ revisionId: v2.revisionId, version: 2, createdBy: "user-2" });
+    expect(auditLogService.log).toHaveBeenCalledWith(expect.objectContaining({
+      action: "RECIPIENT_UPDATED",
+      actor: "user-2",
+    }));
+  });
+
+  it("audits recipient removal with actor and version details", () => {
+    const { svc } = setup();
+    svc.removeRecipient("rcp-1", "admin-user", T2);
+    expect(auditLogService.log).toHaveBeenCalledWith(expect.objectContaining({
+      action: "RECIPIENT_REMOVED",
+      actor: "admin-user",
+      metadata: expect.objectContaining({
+        recipientId: "rcp-1",
+        version: 1,
+      }),
+    }));
   });
 
   it("does not create a new version when the address is unchanged (boundary)", () => {

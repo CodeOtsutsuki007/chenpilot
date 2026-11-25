@@ -33,5 +33,6 @@ reused, even after re-verification. The transfer must be approved again.
 Other rules:
 - A new version must be verified before any transfer can be approved for it.
 - A superseded version cannot be verified.
+- Approvals can be explicitly revoked via `revokeRecipientApproval` without deleting contact history or unrelated versions. Revoking an approval immediately invalidates any prepared transfers bound to that revision (`StaleRecipientApprovalError`), satisfying strict security and compatibility requirements.
 
 Tests: `src/Contacts/__tests__/recipientAddressHistory.test.ts`.
